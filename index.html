@@ -7,28 +7,8 @@
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;color:#f4f8ff}body{background:#07101d;overflow:hidden}button,input,textarea,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
 :root{--blue:#2f80ff;--blue2:#62adff;--panel:#0d1624;--panel2:#111d2d;--line:#263953;--muted:#8ba0bb;--text:#edf5ff;--shadow:0 24px 70px #0008}
 /* Big, friendly blue login design with a blocky game-dashboard feel. */
-#auth{
-  position:fixed;
-  inset:0;
-  display:block;
-  overflow-y:auto;
-  overflow-x:hidden;
-  box-sizing:border-box;
-  padding:24px 14px;
-  background:radial-gradient(circle at 50% 0,#1e61a5 0,transparent 38%),
-             linear-gradient(145deg,#07111f,#03070d 70%);
-  z-index:100;
-}
-.authCard{
-  width:min(560px,96vw);
-  margin:0 auto;
-  box-sizing:border-box;
-  padding:38px;
-  background:linear-gradient(180deg,#152238,#0d1624);
-  border:1px solid #3a5274;
-  border-radius:24px;
-  box-shadow:var(--shadow);
-}
+#auth{position:fixed;inset:0;display:block;overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:24px 14px;background:radial-gradient(circle at 50% 0,#1e61a5 0,transparent 38%),linear-gradient(145deg,#07111f,#03070d 70%);z-index:100}
+.authCard{width:min(560px,96vw);margin:0 auto;box-sizing:border-box;padding:38px;background:linear-gradient(180deg,#152238,#0d1624);border:1px solid #3a5274;border-radius:24px;box-shadow:var(--shadow)}
 .logo{width:86px;height:86px;margin:0 auto 16px;border-radius:24px;display:grid;place-items:center;font-size:42px;font-weight:1000;color:#fff;background:linear-gradient(145deg,#4b9bff,#2367d9);box-shadow:inset 0 1px 0 #ffffff66,0 14px 35px #1475ff44}.authTitle{text-align:center;font-size:38px;margin:0}.authSub{text-align:center;color:#9fb3cc;margin:7px 0 22px}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#09121e;padding:6px;border:1px solid #2d425f;border-radius:14px;margin-bottom:18px}.tab{padding:14px;border:0;border-radius:10px;background:transparent;color:#9db0c8;font-weight:800}.tab.active{background:var(--blue);color:white;box-shadow:0 8px 22px #1673ff44}
 .field{width:100%;padding:15px 16px;margin:6px 0;border-radius:12px;border:1px solid #314764;background:#08111d;color:white;outline:0}.field:focus{border-color:#5ba9ff;box-shadow:0 0 0 3px #2f80ff22}.authBtn{width:100%;padding:15px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-weight:900;font-size:17px;margin-top:9px;box-shadow:0 10px 25px #1475ff33}.authBtn:hover{filter:brightness(1.08)}.muted{color:var(--muted);font-size:13px}.check{display:flex;gap:8px;align-items:center;color:#a9bad0;font-size:13px;margin:12px 0}.dob{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.quickBox{margin:0 0 14px}.quickAcct{display:flex;align-items:center;gap:10px;padding:10px;background:#0a1320;border:1px solid #293e5b;border-radius:11px;margin-top:7px}.quickAcct button{margin-left:auto}.ageInfo{padding:9px 11px;border:1px solid #314c6d;background:#10243b;border-radius:10px;color:#a9d2ff;margin:6px 0;font-size:12px}
@@ -87,10 +67,10 @@ body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none
 .tutorialCard{border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(255,255,255,.045);transition:transform .15s,background .15s;}
 .tutorialCard:hover{transform:translateY(-1px);background:rgba(255,255,255,.08);}
 .themeLight .tutorialCard{background:#f8fafc;}
-@media(max-width:650px){
-  #auth{padding:12px 10px}
+
   .authCard{width:100%;padding:24px;margin:0 auto}
 }
+@media(max-width:650px){#auth{padding:12px 10px}.authCard{width:100%;padding:24px;margin:0 auto}}
 </style>
 </head>
 <body>
@@ -137,8 +117,8 @@ if(location.protocol==='file:'){
     const url=typeof input==='string'?input:input.url, parsed=new URL(url,location.href), path=parsed.pathname, method=(opts.method||'GET').toUpperCase(), body=opts.body?JSON.parse(opts.body):{};let d=db();
     try{
       if(path==='/api/register'&&method==='POST'){const name=String(body.name||'').trim(),pw=String(body.password||''),b=String(body.birthday||''),u=name.toLowerCase();if(name.length<2)return response({error:'Please enter a name.'},400);if(pw.length<8)return response({error:'Password must be at least 8 characters.'},400);if(!b)return response({error:'Please enter your birthday.'},400);if(age(b)<0||age(b)>120)return response({error:'Please enter a real birthday.'},400);if(u===OWNER)return response({error:'That name is reserved.'},403);if(d.accounts[u])return response({error:'That account already exists.'},409);d.accounts[u]={username:u,name,passwordHash:h(pw),birthday:b,points:0,diamonds:0,inventory:[],friends:[],requests:[],servers:['home','updateLog'],messages:[],description:'',notes:'',avatar:'',linkedAccounts:[],role:'user',modAnnouncementDate:'',modAnnouncementCount:0,staffAnnouncementDate:'',staffAnnouncementCount:0,staffActionDate:'',staffActionCount:0,serverAdminServerId:'',serverAdminExpiresAt:0,ownerPanelTrialUntil:0,coOwnerPointGrantRemaining:5000,coOwnerDiamondGrantRemaining:300};d.servers.home.members.push(u);d.servers.updateLog.members.push(u);const t='local_'+Date.now()+'_'+Math.random();d.sessions[t]=u;save(d);return response({token:t,account:clean(d.accounts[u])})}
-      if(path==='/api/login'&&method==='POST'){const u=String(body.name||'').trim().toLowerCase(),pw=String(body.password||'');if(u===OWNER&&!d.accounts[u]){d.accounts[u]={username:OWNER,name:'CEOIMANOOB',passwordHash:h(OWNER_PASS),birthday:'',points:0,diamonds:0,inventory:[],friends:[],requests:[],servers:['home','updateLog'],messages:[],description:'LCA Owner',notes:'',avatar:'',linkedAccounts:[],role:'owner',modAnnouncementDate:'',modAnnouncementCount:0,staffAnnouncementDate:'',staffAnnouncementCount:0,staffActionDate:'',staffActionCount:0,serverAdminServerId:'',serverAdminExpiresAt:0,ownerPanelTrialUntil:0,coOwnerPointGrantRemaining:5000,coOwnerDiamondGrantRemaining:300};d.servers.home.members.push(OWNER);d.servers.updateLog.members.push(OWNER)}const a=d.accounts[u];if(!a||a.passwordHash!==h(pw)&&a.password!==pw)return response({error:'Incorrect name or password.'},401);if(a.permanentBan|| (a.banUntil&&Number(a.banUntil)>Date.now()))return response({error:'You are banned from LCA.',banned:true,banUntil:Number(a.banUntil),banReason:a.banReason||''},403);if(!a.permanentBan&&a.banUntil&&Number(a.banUntil)<=Date.now()){a.banUntil=0;a.banReason='';save(d)}const t='local_'+Date.now()+'_'+Math.random();d.sessions[t]=u;save(d);return response({token:t,account:clean(a)})}
-      const [t,u,a]=session(new Headers(opts.headers||{}),d);if(a&&(a.permanentBan|| (a.banUntil&&Number(a.banUntil)>Date.now()))){if(t)delete d.sessions[t];save(d);return response({error:'You are banned from LCA.',banned:true,banUntil:Number(a.banUntil),banReason:a.banReason||''},403)}if(path==='/api/logout'&&method==='POST'){if(t)delete d.sessions[t];save(d);return response({ok:true})}if(!u||!a)return response({error:'Please log in again.'},401);
+      if(path==='/api/login'&&method==='POST'){const u=String(body.name||'').trim().toLowerCase(),pw=String(body.password||'');if(u===OWNER&&!d.accounts[u]){d.accounts[u]={username:OWNER,name:'CEOIMANOOB',passwordHash:h(OWNER_PASS),birthday:'',points:0,diamonds:0,inventory:[],friends:[],requests:[],servers:['home','updateLog'],messages:[],description:'LCA Owner',notes:'',avatar:'',linkedAccounts:[],role:'owner',modAnnouncementDate:'',modAnnouncementCount:0,staffAnnouncementDate:'',staffAnnouncementCount:0,staffActionDate:'',staffActionCount:0,serverAdminServerId:'',serverAdminExpiresAt:0,ownerPanelTrialUntil:0,coOwnerPointGrantRemaining:5000,coOwnerDiamondGrantRemaining:300};d.servers.home.members.push(OWNER);d.servers.updateLog.members.push(OWNER)}const a=d.accounts[u];if(!a||a.passwordHash!==h(pw)&&a.password!==pw)return response({error:'Incorrect name or password.'},401);if(a.permanentBan|| (a.banUntil&&Number(a.banUntil)>Date.now()))return response({error:'You are banned from LCA.',banned:true,username:u,banUntil:Number(a.banUntil),banReason:a.banReason||''},403);if(!a.permanentBan&&a.banUntil&&Number(a.banUntil)<=Date.now()){a.banUntil=0;a.banReason='';save(d)}const t='local_'+Date.now()+'_'+Math.random();d.sessions[t]=u;save(d);return response({token:t,account:clean(a)})}
+      const [t,u,a]=session(new Headers(opts.headers||{}),d);if(a&&(a.permanentBan|| (a.banUntil&&Number(a.banUntil)>Date.now()))){if(t)delete d.sessions[t];save(d);return response({error:'You are banned from LCA.',banned:true,username:u,banUntil:Number(a.banUntil),banReason:a.banReason||''},403)}if(path==='/api/logout'&&method==='POST'){if(t)delete d.sessions[t];save(d);return response({ok:true})}if(!u||!a)return response({error:'Please log in again.'},401);
       if(path==='/api/session/refresh'&&method==='POST'){return response({account:clean(a)})}
       if(path==='/api/snapshot')return response(snap(d,u));
       if(path==='/api/profile'&&method==='POST'){if(body.name)a.name=String(body.name).trim().slice(0,40);if(typeof body.description==='string')a.description=body.description.slice(0,600);if(typeof body.notes==='string')a.notes=body.notes.slice(0,2000);if(typeof body.avatar==='string')a.avatar=body.avatar;save(d);return response({account:clean(a)})}
@@ -411,12 +391,15 @@ async function ownerPin(id){const r=await fetch('/api/owner/pin-message',{method
 async function ownerKick(username){const chosen=prompt('Server ID to kick them from:',window.serverId||serverId||'');const serverId=chosen||window.serverId||'';if(!serverId)return;const r=await fetch('/api/owner/kick',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username,server:serverId})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();loadOwnerAccounts($('roleSearch')?.value||'');toast('👢 '+d.message)}
 async function ownerUnban(username){if(!confirm('Unban '+username+'?'))return;const r=await fetch('/api/owner/unban',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username})});const d=await r.json();if(!r.ok)return toast(d.error);loadOwnerAccounts($('roleSearch')?.value||'');toast('🔓 '+d.message)}
 async function ownerBan(username){const raw=prompt('Ban duration in minutes. Enter 0 for permanent:','10');if(raw===null)return;const minutes=Number(raw);if(!Number.isFinite(minutes)||minutes<0)return toast('Enter 0 or a positive number.');const reason=prompt('Reason (optional):','Rule violation')||'';if(!confirm(`Ban ${username} ${minutes===0?'permanently':'for '+minutes+' minute(s)'}?`))return;const r=await fetch('/api/owner/ban',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username,minutes,reason})});const d=await r.json();if(!r.ok)return toast(d.error);loadOwnerAccounts($('roleSearch')?.value||'');toast('🚫 '+d.message)}
-function showBanScreen(until,reason){
+function showBanScreen(until,reason,username=''){
+  $('app').classList.add('hidden');$('auth').classList.remove('hidden');
+  username=username||localStorage.getItem('lca_banned_username')||(($('authName')?.value||'').trim().toLowerCase());
+  if(username)localStorage.setItem('lca_banned_username',String(username).toLowerCase());
   if(window.banTimer)clearInterval(window.banTimer);
-  const permanent=!until||Number(until)===0,username=($('authName')?.value||'').trim().toLowerCase();
-  modal(`<h2 style="font-size:28px">🚫 You are banned</h2><p class="muted">You cannot use LCA while this ban is active.</p><div id="banCountdown" style="font-size:34px;font-weight:900;margin:18px 0">${permanent?'PERMANENT':'Calculating...'}</div>${reason?`<div class="ownerItem"><b>Reason</b><div>${esc(reason)}</div></div>`:''}<p class="muted">If you believe this ban is wrong, you can send the owner proof and request an unban.</p><button class="btn primary" onclick="showBanAppeal('${esc(username)}')">📨 Request Unban</button>`);
+  const permanent=!until||Number(until)===0;
+  modal(`<h2 style="font-size:28px">🚫 You are banned</h2><p class="muted">You cannot use LCA while this ban is active.</p><div id="banCountdown" style="font-size:34px;font-weight:900;margin:18px 0">${permanent?'PERMANENT':'Calculating...'}</div>${reason?`<div class="ownerItem"><b>Reason</b><div>${esc(reason)}</div></div>`:''}<p class="muted">If you believe this ban is wrong, you can send the owner proof and request an unban.</p><button class="btn primary" onclick="showBanAppeal('${esc(username)}')">📨 Request Unban</button>` ,true);
   if(!permanent){
-    const tick=()=>{const left=Math.max(0,Number(until)-Date.now());if(left<=0){clearInterval(window.banTimer);window.banTimer=null;closeModal();$('authMsg').textContent='Your ban has expired. You can log in again.';return}const sec=Math.ceil(left/1000),h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),ss=sec%60;$('banCountdown').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`};tick();window.banTimer=setInterval(tick,250)
+    const tick=()=>{const left=Math.max(0,Number(until)-Date.now());if(left<=0){clearInterval(window.banTimer);window.banTimer=null;localStorage.removeItem('lca_banned_username');closeModal(true);$('authMsg').textContent='Your ban has expired. You can log in again.';return}const sec=Math.ceil(left/1000),h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),ss=sec%60;$('banCountdown').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`};tick();window.banTimer=setInterval(tick,250)
   }
 }
 function showBanAppeal(username){
@@ -505,9 +488,16 @@ async function claimReport(id){
 async function openReportReview(report){
   const isOwner=!!account.isOwner;
   const options=`<option value="10">10 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option><option value="360">6 hours</option><option value="1440">1 day</option><option value="4320">3 days</option><option value="7200">5 days</option><option value="-1">Custom</option>`;
-  modal(`<h2>🛡️ Reviewing @${esc(report.reportedUsername)}</h2><p class="muted">You are the reviewer. This page cannot be closed until you choose <b>Ban</b> or <b>Let Go</b>. If you do not decide within 24 hours, another staff member can take the report.</p><div class="ownerItem"><div class="avatar" style="width:70px;height:70px">${esc(initials(report.reportedName||report.reportedUsername))}</div><h3>${esc(report.reportedName||report.reportedUsername)}</h3><div class="muted">@${esc(report.reportedUsername)}</div><p>${esc(report.reason)}</p><img class="reportScreenshot" src="${esc(report.screenshot)}" alt="Report evidence"></div><div class="modalGrid"><div><h3>🚫 Ban</h3><div class="muted">${isOwner?'Owner: any duration or permanent.':'Admin/Co-Owner: up to 5 days.'}</div><select id="reviewBanDuration" class="field">${options}</select><input id="reviewBanCustom" class="field" type="number" min="1" placeholder="Custom minutes" style="display:none"><input id="reviewBanReason" class="field" maxlength="300" value="${esc(report.reason||'Rule violation')}" placeholder="Ban reason"><button class="btn danger" onclick="decideReport('${esc(report.id)}','ban')">Ban this player</button>${!isOwner?`<button class="btn" onclick="messageOwnerAboutReport('${esc(report.id)}')">Message Owner for longer ban</button>`:''}</div><div><h3>✅ Let Go</h3><p class="muted">The report is innocent. You may also ban the person who made the report if it was false or abusive.</p><label class="check"><input id="banReporterCheck" type="checkbox" onchange="$('reporterBanBox').style.display=this.checked?'block':'none'"> Ban the reporter too</label><div id="reporterBanBox" style="display:none"><select id="reporterBanDuration" class="field">${options}</select><input id="reporterBanCustom" class="field" type="number" min="1" placeholder="Custom minutes" style="display:none"></div><button class="btn primary" onclick="decideReport('${esc(report.id)}','letgo')">Let Go</button></div></div>`,true);
+  modal(`<h2>🛡️ Reviewing @${esc(report.reportedUsername)}</h2><p class="muted">You are the reviewer. This page cannot be closed until you choose <b>Ban</b> or <b>Let Go</b>. If you do not decide within 24 hours, another staff member can take the report.</p><div class="ownerItem"><div class="avatar" style="width:70px;height:70px">${esc(initials(report.reportedName||report.reportedUsername))}</div><h3>${esc(report.reportedName||report.reportedUsername)}</h3><div class="muted">@${esc(report.reportedUsername)}</div><p>${esc(report.reason)}</p><img class="reportScreenshot" src="${esc(report.screenshot)}" alt="Report evidence"></div><div class="modalGrid"><div><h3>🚫 Ban</h3><div class="muted">${isOwner?'Owner: any duration or permanent.':'Admin/Co-Owner: up to 5 days.'}</div><select id="reviewBanDuration" class="field">${options}</select><input id="reviewBanCustom" class="field" type="number" min="1" placeholder="Custom minutes" style="display:none"><input id="reviewBanReason" class="field" maxlength="300" value="${esc(report.reason||'Rule violation')}" placeholder="Ban reason"><button class="btn danger" onclick="decideReport('${esc(report.id)}','ban')">Ban this player</button>${!isOwner?`<button class="btn" onclick="messageOwnerAboutReport('${esc(report.id)}')">Message Owner for longer ban</button>`:''}</div><div><h3>✅ Let Go</h3><p class="muted">The report is innocent. You may also ban the person who made the report if it was false or abusive.</p><label class="check"><input id="banReporterCheck" type="checkbox" onchange="$('reporterBanBox').style.display=this.checked?'block':'none'"> Ban the reporter too</label><div id="reporterBanBox" style="display:none"><select id="reporterBanDuration" class="field">${options}</select><input id="reporterBanCustom" class="field" type="number" min="1" placeholder="Custom minutes" style="display:none"></div><button class="btn primary" onclick="decideReport('${esc(report.id)}','letgo')">Let Go</button></div></div>${!isOwner?`<div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn" onclick="exitReportReview('${esc(report.id)}')">✕ Exit Review</button></div>`:''}`,!isOwner);
   const sel=$('reviewBanDuration');if(sel)sel.onchange=()=>{$('reviewBanCustom').style.display=sel.value==='-1'?'block':'none'};
   const rsel=$('reporterBanDuration');if(rsel)rsel.onchange=()=>{$('reporterBanCustom').style.display=rsel.value==='-1'?'block':'none'};
+}
+async function exitReportReview(id){
+  if(account?.isOwner)return toast('The owner must make the final decision.');
+  const r=await fetch('/api/reports/release',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)return toast(d.error||'Could not exit this review.');
+  closeModal(true);toast('Review released. Another staff member can review it.');showReportMailbox();
 }
 async function decideReport(id,decision){
   let body={id,decision};
@@ -544,10 +534,13 @@ async function showOwnerMailbox(){
   const r=await fetch('/api/owner/inbox',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)return toast(d.error||'Could not load owner mailbox.');
-  const reqs=(d.requests||[]).filter(x=>x.status==='new');
+  const reqs=(d.requests||[]).filter(x=>x.status==='new'&&x.type!=='review-timeout');
+  const timeouts=(d.requests||[]).filter(x=>x.status==='new'&&x.type==='review-timeout');
   const appeals=(d.appeals||[]).filter(x=>x.status==='new');
-  modal(`<h2>📨 Owner Mailbox</h2><h3>Longer-ban requests</h3><div>${reqs.map(ownerRequestCard).join('')||'<p class="muted">No longer-ban requests.</p>'}</div><h3>Ban appeals</h3><div>${appeals.map(ownerAppealCard).join('')||'<p class="muted">No ban appeals.</p>'}</div>`);
+  modal(`<h2>📨 Owner Mailbox</h2><h3>Review timeouts</h3><div>${timeouts.map(ownerTimeoutCard).join('')||'<p class="muted">No timed-out reviews.</p>'}</div><h3>Longer-ban requests</h3><div>${reqs.map(ownerRequestCard).join('')||'<p class="muted">No longer-ban requests.</p>'}</div><h3>Ban appeals</h3><div>${appeals.map(ownerAppealCard).join('')||'<p class="muted">No ban appeals.</p>'}</div>`);
 }
+function ownerTimeoutCard(x){return `<div class="reportCard new"><b>⏰ Review timeout: @${esc(x.reportedUsername||'player')}</b><div class="reportMeta">Previous reviewer: @${esc(x.from||'staff')} · ${esc(x.createdAt?new Date(x.createdAt).toLocaleString():'')}</div><div class="reportReason">${esc(x.reason||'The report was not decided within 24 hours.')}</div><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px"><button class="btn primary" onclick="ownerOpenTimedOutReport('${esc(x.reportId||'')}')">Open Review</button></div></div>`}
+async function ownerOpenTimedOutReport(reportId){if(!reportId)return toast('Report not found.');const r=await fetch('/api/reports/claim',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id:reportId})});const d=await r.json().catch(()=>({}));if(!r.ok)return toast(d.error||'Could not claim the report.');closeModal(true);openReportReview(d.report)}
 function ownerRequestCard(x){
   return `<div class="reportCard new"><b>Longer ban request for @${esc(x.reportedUsername)}</b><div class="reportMeta">From @${esc(x.from)} · ${esc(x.createdAt?new Date(x.createdAt).toLocaleString():'')}</div><div class="reportReason">${esc(x.reason)}</div><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px"><button class="btn primary" onclick="ownerHandleRequest('${esc(x.id)}')">Open & Ban</button></div></div>`;
 }
@@ -585,7 +578,7 @@ async function boot(){
         }
         if(r.status===403){
           const d=await r.json().catch(()=>({}));
-          if(d.banned){showBanScreen(d.banUntil,d.banReason||'');return;}
+          if(d.banned){showBanScreen(d.banUntil,d.banReason||'',d.username||'');return;}
           break;
         }
         if(r.status===401)break;
