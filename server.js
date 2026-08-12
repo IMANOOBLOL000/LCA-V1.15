@@ -474,3 +474,24 @@ app.post('/api/owner/mailbox/delete',auth,(req,res)=>{
   if(!removed)return res.status(404).json({error:'Mailbox item not found.'});
   save(db);res.json({ok:true});
 });
+
+
+/* LCA feature APIs */
+app.post('/api/mod/mute',(req,res)=>{
+  const a=req.account||req.user||{};
+  const rank=String(a.rank||'').toLowerCase();
+  if(!['owner','co-owner'].includes(rank)) return res.status(403).json({error:'Only owner or co-owner can mute users.'});
+  const username=String(req.body?.username||'');
+  const duration=Math.max(1,Math.min(Number(req.body?.durationMinutes)||1,10080));
+  if(!username || username===a.username) return res.status(400).json({error:'Invalid target.'});
+  const db=req.db||DB;
+  db.mutes=Array.isArray(db.mutes)?db.mutes:[];
+  db.mutes=db.mutes.filter(x=>x.username!==username);
+  db.mutes.push({id:Date.now().toString(36),username,until:Date.now()+duration*60000,by:a.username});
+  save(db); res.json({ok:true,until:Date.now()+duration*60000});
+});
+app.post('/api/owner/staff-abuse',(req,res)=>{
+  const db=req.db||DB; db.ownerMailbox=Array.isArray(db.ownerMailbox)?db.ownerMailbox:[];
+  db.ownerMailbox.push({id:Date.now().toString(36),type:'staff-abuse',staff:String(req.body?.staff||''),reason:String(req.body?.reason||''),from:req.account?.username||req.user?.username||'unknown',createdAt:Date.now()});
+  save(db); res.json({ok:true});
+});

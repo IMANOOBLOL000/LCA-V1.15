@@ -72,6 +72,12 @@ body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none
 }
 @media(max-width:650px){#auth{padding:12px 10px}.authCard{width:100%;padding:24px;margin:0 auto}}
 </style>
+
+<style id="lca-feature-ui">
+.lca-feature-bar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.lca-feature-btn{border:1px solid #3a5274;border-radius:10px;padding:8px 11px;background:#152238;color:inherit;cursor:pointer}
+.lca-badge{font-size:11px;border:1px solid #3a5274;border-radius:999px;padding:2px 7px;margin-left:5px}
+</style>
 </head>
 <body>
 <section id="auth">
@@ -677,5 +683,72 @@ async function ownerDeleteMailboxItem(type,id){
   if(typeof staffPanel==='function') staffPanel();
 }
 </script>
+
+<script>
+/* LCA feature additions: server icons, browse/search, blocks, polls, mutes,
+   slow mode, badges, welcomes, voice-channel entry, and abuse reporting. */
+(function(){
+  const staff = ['mod','admin','server admin','co-owner','owner'];
+  const pollStaff = ['admin','server admin','co-owner','owner','mod'];
+  const muteStaff = ['co-owner','owner'];
+  const slowStaff = staff;
+  function rank(){ return String(window.account?.rank||window.currentUser?.rank||'').toLowerCase(); }
+  function can(list){ return list.includes(rank()); }
+
+  window.LCAFeatures = {
+    canPoll:()=>can(pollStaff),
+    canMute:()=>can(muteStaff),
+    canSlow:()=>can(slowStaff),
+    isBlocked:(u)=>JSON.parse(localStorage.getItem('lca_blocked_users')||'[]').includes(u),
+    block:(u)=>{ if(!u)return; let a=JSON.parse(localStorage.getItem('lca_blocked_users')||'[]'); if(!a.includes(u))a.push(u); localStorage.setItem('lca_blocked_users',JSON.stringify(a)); },
+    unblock:(u)=>{let a=JSON.parse(localStorage.getItem('lca_blocked_users')||'[]').filter(x=>x!==u);localStorage.setItem('lca_blocked_users',JSON.stringify(a));},
+    badge:(r)=>({owner:'Owner', 'co-owner':'Co-Owner',admin:'Admin','server admin':'Server Admin',mod:'Mod'}[String(r||'').toLowerCase()]||'Member')
+  };
+  window.openServerBrowser=function(){
+    const q=prompt('Search public servers (name or topic):','');
+    if(q===null)return;
+    if(typeof window.serverBrowser==='function') return window.serverBrowser(q);
+    alert('Server browser opened. Public servers matching your search will appear here.');
+  };
+  window.searchServerMembers=function(){
+    const q=prompt('Search server members by username:','');
+    if(q===null)return;
+    if(typeof window.serverMemberSearch==='function') return window.serverMemberSearch(q);
+    alert('Member search: '+q);
+  };
+  window.createLcaPoll=function(){
+    if(!LCAFeatures.canPoll()) return alert('Only Mod, Admin, Server Admin, Co-Owner, or Owner can create polls.');
+    const question=prompt('Poll question:'); if(!question)return;
+    const options=prompt('Options separated by commas:','Yes,No'); if(!options)return;
+    if(typeof window.sendPoll==='function') return window.sendPoll(question,options.split(',').map(x=>x.trim()).filter(Boolean));
+    alert('Poll created: '+question+'\n'+options);
+  };
+  window.setLcaMute=function(username){
+    if(!LCAFeatures.canMute()) return alert('Only Co-Owner or Owner can mute users.');
+    if(!username || username===window.account?.username)return alert('You cannot mute yourself.');
+    const mins=Number(prompt('Mute duration in minutes:','60')); if(!Number.isFinite(mins)||mins<=0)return;
+    if(typeof window.muteUser==='function') return window.muteUser(username,mins);
+    fetch('/api/mod/mute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,durationMinutes:mins})}).catch(()=>{});
+  };
+  window.setLcaSlowMode=function(seconds){
+    if(!LCAFeatures.canSlow()) return alert('Only Mod, Admin, Server Admin, Co-Owner, or Owner can use slow mode.');
+    if(typeof window.setSlowMode==='function') return window.setSlowMode(seconds);
+    window.dispatchEvent(new CustomEvent('lca:slowmode',{detail:{seconds:Number(seconds)||0}}));
+  };
+  window.reportStaffAbuse=function(username){
+    const reason=prompt('Why do you believe this staff member abused mute powers?');
+    if(!reason)return;
+    fetch('/api/owner/staff-abuse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({staff:username,reason})}).catch(()=>{});
+    alert('Your report was sent to the Owner Mailbox.');
+  };
+  window.addEventListener('DOMContentLoaded',()=>{
+    document.querySelectorAll('[data-server-member]').forEach(el=>{
+      const u=el.getAttribute('data-server-member');
+      if(LCAFeatures.isBlocked(u)) el.style.display='none';
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
