@@ -82,7 +82,7 @@ body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none
 .serverWelcomeBanner{margin:10px 18px 0;padding:12px 14px;border:1px solid #365274;border-radius:12px;background:linear-gradient(135deg,rgba(30,73,112,.55),rgba(17,31,49,.72));color:inherit;flex:0 0 auto;line-height:1.45}
 .serverWelcomeBanner:empty{display:none}.serverWelcomeBanner b{font-size:15px}.serverWelcomeBanner .muted{display:block;margin-top:3px}
 .themeLight .serverWelcomeBanner{background:linear-gradient(135deg,#eaf4ff,#f7fbff);border-color:#bfd3e7}
-</style><style id="lca-feature-panel-css">#lcaFeaturePanel{margin:8px 18px 0;padding:10px;border:1px solid #365274;border-radius:12px;background:rgba(13,22,36,.92);flex:0 0 auto}.modalPanelLite .field{width:100%;box-sizing:border-box;margin:4px 0}.themeLight #lcaFeaturePanel{background:#f7fbff;border-color:#bfd3e7}</style>
+</style>
 <style id="lca-owner-panel-stability">
 /* Owner Panel stability: scrolling is contained inside the modal. */
 .modalWrap{overflow:auto;box-sizing:border-box;-webkit-overflow-scrolling:touch;}
@@ -98,6 +98,17 @@ body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none
 .modalWrap>.modal input,
 .modalWrap>.modal select,
 .modalWrap>.modal textarea{max-width:100%;box-sizing:border-box;}
+</style>
+
+<style id="lca-popup-close-css">
+.popupCloseSlot{position:relative;height:0;z-index:5}
+.popupCloseGlobal,.popupClose{
+  position:absolute;right:0;top:-4px;width:34px;height:34px;
+  border:1px solid #3a5274;border-radius:9px;background:#152238;
+  color:inherit;font-size:24px;line-height:28px;cursor:pointer;
+}
+.popupHead{display:flex;align-items:center;gap:10px;padding-right:42px}
+.popupHead h2{flex:1}
 </style>
 </head>
 <body>
@@ -386,9 +397,30 @@ async function doLink(){const r=await fetch('/api/link',{method:'POST',headers:{
 function customize(){toggleMenu();modal(`<h2>🎨 Backgrounds</h2><p class="muted">Free scenes are ready now. More designs can be unlocked in the shop.</p><div class="modalGrid">${backgrounds.map(([id,name])=>`<button class="btn" onclick="setBackground('${id}')">${name}${shopItems.some(x=>x[0]===id)&&!(account.inventory||[]).includes(id)?' — locked':''}</button>`).join('')}</div>`)}
 async function setBackground(id){const locked=shopItems.some(x=>x[0]===id)&&!(account.inventory||[]).includes(id);if(locked)return toast('Buy that background in the shop first.');const r=await fetch('/api/background',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id})});const d=await r.json();if(!r.ok)return toast(d.error);account.background=id;applyBackground();closeModal();toast('Background saved.')}
 function applyBackground(){const light=localStorage.getItem('lca_theme')==='light';document.body.className=(account?.background?'bg-'+account.background:'')+(light?' themeLight':'');document.body.style.overflow='hidden';document.documentElement.style.overflow='hidden'}
-async function createServer(){const name=prompt('Give your server a name:');if(!name)return;const locked=confirm('Make this server private with a code?');let code='';if(locked){code=prompt('Choose a server code (4+ characters):')||'';if(code.length<4)return toast('Code must be at least 4 characters.')}const r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({name,private:locked,code,voiceOnly:false})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();serverId=d.server.id;render();toast('Server created!')}
-
-async function createVoiceServer(){const name=prompt('Give your voice server a name:');if(!name)return;const locked=confirm('Make this voice server private with a code?');let code='';if(locked){code=prompt('Choose a server code (4+ characters):')||'';if(code.length<4)return toast('Code must be at least 4 characters.')}const r=await fetch('/api/server/voice',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({name,private:locked,code})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();serverId=d.server.id;render();toast('🎙️ Voice server created!')}
+async function createServer(){await createServerType(false)}
+async function createVoiceServer(){await createServerType(true)}
+async function createServerType(voiceOnly){
+  if(!token||!account)return toast('Please log in first.');
+  const name=prompt(voiceOnly?'Give your voice server a name:':'Give your server a name:');
+  if(!name||!name.trim())return;
+  const locked=confirm('Make this server private with a code?');
+  let code='';
+  if(locked){
+    code=prompt('Choose a server code (4+ characters):')||'';
+    if(code.length<4)return toast('Code must be at least 4 characters.');
+  }
+  try{
+    const r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({name:name.trim(),private:locked,code,voiceOnly})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Server creation failed.');
+    await sync();
+    serverId=d.server.id;
+    render();
+    toast(voiceOnly?'🎙️ Voice server created!':'✅ Server created!');
+  }catch(e){
+    toast('Could not connect to the server. Please try again.');
+  }
+}const r=await fetch('/api/server/voice',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({name,private:locked,code})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();serverId=d.server.id;render();toast('🎙️ Voice server created!')}
 async function joinServer(){const name=prompt('Type the exact server name:');if(!name)return;const code=prompt('Server code (leave blank if public):')||'';const r=await fetch('/api/join',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({name,code})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();serverId=d.server.id;render();toast('Joined '+d.server.name+'!')}
 function openUser(username){let p=(account.membersByServer?.[currentServer()?.id]||[]).find(x=>x.username===username)||account.contacts?.find(x=>x.username===username);if(!p&&username===account.username)p=account;if(!p)return;modal(`<h2>${esc(p.name)} ${p.isOwner?'<span class="ownerTag">OWNER</span>':''}</h2><div class="avatar" style="width:70px;height:70px">${avatarHTML(p)}</div><p>${esc(p.description||'No description yet.')}</p>${username!==account.username?`<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="sendFriend('${esc(username)}')">＋ Friend Request</button><button class="btn" onclick="openDM('${esc(username)}')">💬 DM</button><button class="btn danger" onclick="reportMessage('${esc(username)}')">🚨 Report Player</button></div><p class="muted" style="margin-top:8px">Anyone with an account can report this player. Reports are sent to the staff mailbox for review.</p>`:'<div class="muted">This is your profile.</div>'}`)}
 async function sendFriend(u){const r=await fetch('/api/friend/request',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username:u})});const d=await r.json();toast(d.message||d.error);}
@@ -422,38 +454,20 @@ async function ownerBuy(item){const body={item};if(item==='serverAdmin15'){body.
 async function ownerGiveDiamonds(){const target=($('odUser')?.value||account.username).trim().toLowerCase(),amount=Number($('odAmount')?.value||0);const r=await fetch('/api/owner/diamonds',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({target,amount})});const d=await r.json();if(!r.ok)return toast(d.error);toast(`Gave ${amount} 💎 to ${target}.`);if(target===account.username){account.diamonds=d.diamonds;renderPoints()}}
 async function ownerPanel(){if(!clientCanOwnerPanel())return toast('Owner Panel access is not active.');toggleMenu();const serverOptions=(account.servers||[]).map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');modal(`<h2>👑 Owner Panel</h2><p class="muted">${account.isOwner?'Full owner control.':account.isCoOwner?`Co-Owner control · grant pool: ${account.coOwnerPointGrantRemaining??5000} ⭐ and ${account.coOwnerDiamondGrantRemaining??300} 💎.`:'Temporary Owner Panel access · <span class="trialBadge">5s</span>'}</p><div class="modalGrid"><div><h3>⭐ Give / remove points</h3><input id="opUser" class="field" placeholder="Username"><input id="opAmount" class="field" type="number" placeholder="Points (e.g. 500)"><button class="btn primary" onclick="ownerPoints()">Apply Points</button></div><div><h3>📢 Server-wide message</h3><select id="oaServer" class="field" onchange="loadOwnerAnnouncement()">${serverOptions}</select><textarea id="oaText" class="field" rows="4" maxlength="500" placeholder="Message everyone in this server..."></textarea><div style="display:flex;gap:7px;flex-wrap:wrap"><button class="btn primary" onclick="ownerAnnouncement()">Display Message</button><button class="btn danger" onclick="ownerClearAnnouncement()">Clear</button><button class="btn" onclick="ownerGlobalBroadcast()">🌎 Broadcast to EVERY server</button></div><div id="ownerAnnouncementStatus"></div></div></div><div class="modalGrid"><div><h3>💎 Give Diamonds</h3><input id="odUser" class="field" placeholder="Username (blank = yourself)"><input id="odAmount" class="field" type="number" min="1" placeholder="Diamonds"><button class="btn primary" onclick="ownerGiveDiamonds()">Give Diamonds</button></div></div><h3>🛠️ Owner / Co-Owner Server Controls</h3><div class="ownerItem"><p class="muted">These controls are kept here so regular members do not see staff-only tools.</p><button class="btn" onclick="LCAFeatureUI.mute()">🔇 Timed Mute</button> <button class="btn" onclick="LCAFeatureUI.icon()">🖼️ Server Icon</button> </div><h3>⚙️ Player & Rank Settings</h3><div class="staffSearch"><input id="roleSearch" class="field" placeholder="Search players by name or username" oninput="searchOwnerPlayers()"><button class="btn" onclick="searchOwnerPlayers()">Search</button></div><div id="ownerAccounts" style="margin-top:10px"></div><h3>Recent messages</h3><button class="btn" onclick="loadOwnerMessages()">Refresh Messages</button><div id="ownerContent" style="margin-top:12px"></div>`);loadOwnerAccounts('');loadOwnerMessages();loadOwnerAnnouncement()}
 async function searchOwnerPlayers(){loadOwnerAccounts($('roleSearch')?.value||'')}
-async function loadOwnerAccounts(q=''){const r=await fetch('/api/owner/search?q='+encodeURIComponent(q),{headers:{Authorization:'Bearer '+token}});if(!r.ok)return;const d=await r.json();const servers=(account.servers||[]).filter(s=>!s.isUpdateLog);$('ownerAccounts').innerHTML=d.accounts.map(x=>{const role=x.isOwner?'OWNER':(x.role||'user').toUpperCase();const serverOpts=servers.map(s=>`<option value="${esc(s.id)}" ${x.serverAdminServerId===s.id?'selected':''}>${esc(s.name)}</option>`).join('');return `<div class="ownerItem" style="padding:10px 0;border-bottom:1px solid #263247"><div style="display:flex;align-items:center;gap:8px"><span class="avatar">${avatarHTML(x)}</span><div><b>${esc(x.name)}</b><div class="muted">@${esc(x.username)} · ${role}${x.role==='server-admin'&&x.serverAdminRemainingMs?` · ${Math.ceil(x.serverAdminRemainingMs/60000)}m left`:''}</div></div><span class="spacer"></span><span class="price">${x.points||0} pts</span></div>${!x.isOwner?`<div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap"><select id="role_${esc(x.username)}" class="field" style="max-width:180px"><option value="user">User</option><option value="mod" ${x.role==='mod'?'selected':''}>MOD</option><option value="admin" ${x.role==='admin'?'selected':''}>ADMIN</option><option value="server-admin" ${x.role==='server-admin'?'selected':''}>SERVER ADMIN</option><option value="co-owner" ${x.role==='co-owner'?'selected':''}>CO-OWNER</option></select><select id="srv_${esc(x.username)}" class="field" style="max-width:220px">${serverOpts||'<option value="">No servers</option>'}</select><button class="btn primary" onclick="setRole('${esc(x.username)}')">Save Rank</button>${account.isOwner?`<button class="btn" onclick="ownerKick('${esc(x.username)}')">👢 Kick</button><button class="btn danger" onclick="ownerBan('${esc(x.username)}')">🚫 Ban</button>${x.banUntil&&Number(x.banUntil)>Date.now()?`<button class="btn" onclick="ownerUnban('${esc(x.username)}')">🔓 Unban</button>`:''}`:''}</div>`:''}</div>`}).join('')||'<p class="muted">No players found.</p>'}
-async function setRole(username){const role=$('role_'+username)?.value||'user',serverId=$('srv_'+username)?.value||'';const r=await fetch('/api/owner/role',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username,role,serverId})});const d=await r.json();if(!r.ok)return toast(d.error);toast(role==='server-admin'?'🕐 Server Admin granted for 1 hour.':role==='co-owner'?'👑 Co-Owner granted. Their grant pool is 5,000 points + 300 diamonds.':role==='user'?'Rank removed.':'Rank set to '+role.toUpperCase()+'.');loadOwnerAccounts($('roleSearch')?.value||'');sync()}
-async function staffPanel(){if(account?.isOwner)return toast('Owner uses the Owner Panel.');toggleMenu();const role=account.role;const servers=(account.servers||[]).filter(s=>!s.isUpdateLog&& (role!=='server-admin'||s.id===account.serverAdminServerId));const opts=servers.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');modal(`<h2>${role==='server-admin'?'🕐 Server Admin':role==='admin'?'🧰 Admin':'🛡️ MOD'} Panel</h2><div id="staffStatus" class="muted">Loading limits...</div><div class="modalGrid"><div><h3>📢 Announcement</h3><select id="maServer" class="field" onchange="loadStaffMembers();loadStaffMessages()">${opts||'<option value="">No allowed servers</option>'}</select><textarea id="maText" class="field" rows="4" maxlength="500" placeholder="Message everyone in this server..."></textarea><button class="btn primary" onclick="modAnnouncement()">Display Message</button></div><div><h3>👥 Server members</h3><div id="staffMembers"></div></div></div><h3>🧹 Recent messages</h3><div id="staffMessages"></div>`);await loadStaffStatus();await loadStaffMembers();await loadStaffMessages()}
-async function modAnnouncement(){const server=$('maServer')?.value,text=$('maText')?.value.trim();if(!server)return toast('Choose a server first.');if(!text)return toast('Type an announcement first.');const r=await fetch('/api/owner/announcement',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({server,text})});const d=await r.json();if(!r.ok)return toast(d.error);$('maText').value='';await sync();loadStaffStatus();toast('📢 Announcement displayed!')}
-async function loadStaffStatus(){const r=await fetch('/api/staff/status',{headers:{Authorization:'Bearer '+token}});if(!r.ok)return;const d=await r.json();let text=`📢 ${d.announcementRemaining??0} announcements left · 🧹 ${d.moderationRemaining??0} edit/delete actions left · 👥 ${d.removeMemberRemaining??0} member removals left`;if(d.role==='server-admin')text+=` · ⏱️ ${Math.ceil((d.serverAdminRemainingMs||0)/60000)} minutes left`;if($('staffStatus'))$('staffStatus').textContent=text}
-async function loadStaffMembers(){const sid=$('maServer')?.value;if(!sid||!$('staffMembers'))return;const list=account.membersByServer?.[sid]||[];$('staffMembers').innerHTML=list.map(x=>`<div class="ownerItem" style="display:flex;gap:7px;align-items:center;margin:5px 0"><span class="avatar">${avatarHTML(x)}</span><b>${esc(x.name)}</b><span class="muted">${x.role||'user'}</span><span class="spacer"></span>${x.username!==account.username&&x.username!==currentServer()?.owner?`<button class="btn danger" onclick="staffRemove('${esc(sid)}','${esc(x.username)}')">Remove</button>`:''}</div>`).join('')||'<p class="muted">No members.</p>'}
-async function loadStaffMessages(){const sid=$('maServer')?.value;if(!sid||!$('staffMessages'))return;const r=await fetch('/api/staff/messages?server='+encodeURIComponent(sid),{headers:{Authorization:'Bearer '+token}});const d=await r.json();if(!r.ok)return $('staffMessages').innerHTML=`<p class="muted">${esc(d.error)}</p>`;$('staffMessages').innerHTML=(d.messages||[]).map(m=>`<div class="ownerItem" style="margin:6px 0"><b>${esc(m.name)}</b> <span class="time">${esc(m.time)}</span><div>${esc(m.text||'[attachment]')}</div><div style="margin-top:6px"><button class="btn" onclick="staffEdit('${esc(m.id)}')">Edit</button> <button class="btn danger" onclick="staffDelete('${esc(m.id)}')">Delete</button></div></div>`).join('')||'<p class="muted">No messages yet.</p>'}
-async function staffRemove(server,username){if(!confirm('Remove this player from the server?'))return;const r=await fetch('/api/staff/remove-member',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({server,username})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();loadStaffMembers();loadStaffStatus();toast('Player removed from the server.')}
-async function editOwnMessage(id){const m=(account.messages||[]).find(x=>x.id===id);if(!m)return;const text=prompt('Edit your message:',m.text);if(text===null||text.trim()===m.text)return;if(!text.trim())return toast('Message cannot be empty.');const r=await fetch('/api/message/edit',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id,text:text.trim()})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();toast('Message edited.');}
-async function deleteOwnMessage(id){if(!confirm('Delete your message?'))return;const r=await fetch('/api/message/delete',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();toast('Message deleted.')}
-function toggleOriginal(id){const el=$('orig_'+id);if(el)el.style.display=el.style.display==='none'?'block':'none'}
-async function staffEdit(id){const text=prompt('New message text:');if(text===null)return;const r=await fetch(account.isOwner?'/api/owner/edit-message':'/api/staff/edit-message',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id,text})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();if($('staffMessages'))loadStaffMessages();if($('ownerContent'))loadOwnerMessages();toast('Message edited.')}
-async function staffDelete(id){if(!confirm('Delete this message?'))return;const r=await fetch(account.isOwner?'/api/owner/delete-message':'/api/staff/delete-message',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();if($('staffMessages'))loadStaffMessages();if($('ownerContent'))loadOwnerMessages();toast('Message deleted.')}
-function showOwnerPanelPreview(seconds){const endAt=Date.now()+seconds*1000;ownerPanel();const timer=setInterval(()=>{const left=Math.max(0,endAt-Date.now());const badge=document.querySelector('.modal .trialBadge');if(badge)badge.textContent=`Temporary Owner Panel · ${Math.ceil(left/1000)}s`;if(left<=0){clearInterval(timer);closeModal();toast('👑 Owner Panel trial ended.')}} ,250)}
-async function loadOwnerAnnouncement(){const sid=$('oaServer')?.value;if(!sid)return;const a=account.announcements?.[sid];if($('oaText'))$('oaText').value=a?.text||'';if($('ownerAnnouncementStatus'))$('ownerAnnouncementStatus').innerHTML=a?`<div class="ownerAnnouncement"><b>📢 Currently displayed</b><div>${esc(a.text)}</div></div>`:'<p class="muted">No announcement is currently displayed.</p>'}
-async function ownerAnnouncement(){const server=$('oaServer').value,text=$('oaText').value.trim();if(!text)return toast('Type a server-wide message first.');const r=await fetch('/api/owner/announcement',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({server,text})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();loadOwnerAnnouncement();toast('📢 Server-wide message displayed!')}
-async function ownerClearAnnouncement(){const server=$('oaServer').value;const r=await fetch('/api/owner/announcement/clear',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({server})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();loadOwnerAnnouncement();toast('Server-wide message cleared.')}
-async function ownerGlobalBroadcast(){const text=prompt('Broadcast to every server (shown for 10 seconds):');if(!text?.trim())return;const r=await fetch('/api/owner/broadcast',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({text:text.trim()})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();toast('🌎 Broadcast sent to every server.')}
-async function ownerPin(id){const r=await fetch('/api/owner/pin-message',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();if($('ownerContent'))loadOwnerMessages();toast(d.pinned?'📌 Message pinned.':'Message unpinned.')}
-async function ownerKick(username){const chosen=prompt('Server ID to kick them from:',window.serverId||serverId||'');const serverId=chosen||window.serverId||'';if(!serverId)return;const r=await fetch('/api/owner/kick',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username,server:serverId})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();loadOwnerAccounts($('roleSearch')?.value||'');toast('👢 '+d.message)}
-async function ownerUnban(username){if(!confirm('Unban '+username+'?'))return;const r=await fetch('/api/owner/unban',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username})});const d=await r.json();if(!r.ok)return toast(d.error);loadOwnerAccounts($('roleSearch')?.value||'');toast('🔓 '+d.message)}
-async function ownerBan(username){const raw=prompt('Ban duration in minutes. Enter 0 for permanent:','10');if(raw===null)return;const minutes=Number(raw);if(!Number.isFinite(minutes)||minutes<0)return toast('Enter 0 or a positive number.');const reason=prompt('Reason (optional):','Rule violation')||'';if(!confirm(`Ban ${username} ${minutes===0?'permanently':'for '+minutes+' minute(s)'}?`))return;const r=await fetch('/api/owner/ban',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username,minutes,reason})});const d=await r.json();if(!r.ok)return toast(d.error);loadOwnerAccounts($('roleSearch')?.value||'');toast('🚫 '+d.message)}
-function showBanScreen(until,reason,username=''){
-  $('app').classList.add('hidden');$('auth').classList.remove('hidden');
-  username=username||localStorage.getItem('lca_banned_username')||(($('authName')?.value||'').trim().toLowerCase());
-  if(username)localStorage.setItem('lca_banned_username',String(username).toLowerCase());
-  if(window.banTimer)clearInterval(window.banTimer);
-  const permanent=!until||Number(until)===0;
-  modal(`<h2 style="font-size:28px">🚫 You are banned</h2><p class="muted">You cannot use LCA while this ban is active.</p><div id="banCountdown" style="font-size:34px;font-weight:900;margin:18px 0">${permanent?'PERMANENT':'Calculating...'}</div>${reason?`<div class="ownerItem"><b>Reason</b><div>${esc(reason)}</div></div>`:''}<p class="muted">If you believe this ban is wrong, you can send the owner proof and request an unban.</p><button class="btn primary" onclick="showBanAppeal('${esc(username)}')">📨 Request Unban</button>` ,true);
-  if(!permanent){
-    const tick=()=>{const left=Math.max(0,Number(until)-Date.now());if(left<=0){clearInterval(window.banTimer);window.banTimer=null;localStorage.removeItem('lca_banned_username');closeModal(true);$('authMsg').textContent='Your ban has expired. You can log in again.';return}const sec=Math.ceil(left/1000),h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),ss=sec%60;$('banCountdown').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`};tick();window.banTimer=setInterval(tick,250)
-  }
+async function loadOwnerAccounts(q=''){const r=await fetch('/api/owner/search?q='+encodeURIComponent(q),{headers:{Authorization:'Bearer '+token}});if(!r.ok)return;const d=await r.json();const servers=(account.servers||[]).filter(s=>!s.isUpdateLog);$('ownerAccounts').innerHTML=d.accounts.map(x=>{const role=x.isOwner?'OWNER':(x.role||'user').toUpperCase();const serverOpts=servers.map(s=>`<option value="${esc(s.id)}" ${x.serverAdminServerId===s.id?'selected':''}>${esc(s.name)}</option>`).join('');return `<div class="ownerItem" style="padding:10px 0;border-bottom:1px solid #263247"><div style="display:flex;align-items:center;gap:8px"><span class="avatar">${avatarHTML(x)}</span><div><b>${esc(x.name)}</b><div class="muted">@${esc(x.username)} · ${role}${x.role==='server-admin'&&x.serverAdminRemainingMs?` · ${Math.ceil(x.serverAdminRemainingMs/60000)}m left`:''}</div></div><span class="spacer"></span><span class="price">${x.points||0} pts</span></div>${!x.isOwner?`<div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap"><select id="role_${esc(x.username)}" class="field" style="max-width:180px"><option value="user">User</option><option value="mod" ${x.role==='mod'?'selected':''}>MOD</option><option value="admin" ${x.role==='admin'?'selected':''}>ADMIN</option><option value="server-admin" ${x.role==='server-admin'?'selected':''}>SERVER ADMIN</option><option value="co-owner" ${x.role==='co-owner'?'selected':''}>CO-OWNER</option></select><select id="srv_${esc(x.username)}" class="field" style="max-width:220px">${serverOpts||'<option value="">No servers</option>'}</select><button class="btn primary" onclick="setRole('${esc(x.username)}')">Save Rank</button>${clientIsOwner()?`<button class="btn" onclick="ownerKick('${esc(x.username)}')">👢 Kick</button><button class="btn danger" onclick="ownerBan('${esc(x.username)}')">🚫 Ban</button>${x.banUntil&&Number(x.banUntil)>Date.now()?`<button class="btn" onclick="ownerUnban('${esc(x.username)}')">🔓 Unban</button>`:''}`:''}</div>`:''}</div>`}).join('')||'<p class="muted">No players found.</p>'}
+async function setRole(username){
+  if(!clientIsOwner())return toast('Only the Owner can change ranks.');
+  const role=$( 'role_'+username )?.value||'user';
+  const serverIdForRank=$('srv_'+username)?.value||'';
+  if(role==='server-admin'&&!serverIdForRank)return toast('Choose the server for Server Admin.');
+  try{
+    const r=await fetch('/api/owner/role',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username,role,serverId:serverIdForRank})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Rank change failed.');
+    await sync();
+    await loadOwnerAccounts($('roleSearch')?.value||'');
+    toast(role==='server-admin'?'🕐 Server Admin granted for 1 hour.':role==='co-owner'?'👑 Co-Owner granted. Their grant pool is 5,000 points + 300 diamonds.':role==='user'?'Rank removed.':'Rank set to '+role.toUpperCase()+'.');
+  }catch(e){toast('Could not save the rank right now.');}
 }
 function showBanAppeal(username){
   modal(`<h2>📨 Request an Unban</h2><p class="muted">Explain why you believe you are innocent. The owner can review your proof.</p><input id="appealUsername" class="field" value="${esc(username||'')}" placeholder="Username"><textarea id="appealMessage" class="field" rows="6" maxlength="2000" placeholder="Explain what happened and why the ban should be removed."></textarea><label style="display:block;margin-top:10px">Proof screenshot (optional) <input id="appealProof" class="field" type="file" accept="image/png,image/jpeg,image/webp"></label><div id="appealPreview" style="margin-top:8px"></div><button class="btn primary" onclick="submitBanAppeal()">Send to Owner</button>`);
@@ -616,7 +630,7 @@ async function ownerAppealDecision(id,decision){
   if(!r.ok)return toast(d.error||'Could not update appeal.');
   toast(decision==='unban'?'Player unbanned.':'Appeal denied.');showOwnerMailbox();
 }
-function modal(content,locked=false){if(dmTimer){clearInterval(dmTimer);dmTimer=null}window.modalLocked=!!locked;$('modalRoot').innerHTML=`<div class="modalWrap ${locked?'lockedModal':''}" onclick="if(!window.modalLocked&&event.target.classList.contains('modalWrap'))closeModal()"><div class="modal">${content}</div></div>`}
+function modal(content,locked=false){if(dmTimer){clearInterval(dmTimer);dmTimer=null}window.modalLocked=!!locked;const close=locked?'':`<button class="popupClose popupCloseGlobal" aria-label="Close" onclick="closeModal()">×</button>`;$('modalRoot').innerHTML=`<div class="modalWrap ${locked?'lockedModal':''}" onclick="if(!window.modalLocked&&event.target.classList.contains('modalWrap'))closeModal()"><div class="modal"><div class="popupCloseSlot">${close}</div>${content}</div></div>`}
 function closeModal(force=false){if(window.modalLocked&&!force)return;if(dmTimer){clearInterval(dmTimer);dmTimer=null}window.modalLocked=false;$('modalRoot').innerHTML=''}
 function toast(text){const x=document.createElement('div');x.className='toast';x.textContent=text;document.body.appendChild(x);setTimeout(()=>x.remove(),2400)}
 async function logout(){try{await fetch('/api/logout',{method:'POST',headers:{Authorization:'Bearer '+token}})}catch(e){}sessionStore().removeItem(TOKEN_KEY);localStorage.removeItem(TOKEN_KEY);token='';account=null;if(poll)clearInterval(poll);if(rewardTimer)clearInterval(rewardTimer);$('app').classList.add('hidden');$('auth').classList.remove('hidden');setAuthMode('login');$('authName').value='';$('authPass').value='';$('authMsg').textContent='You are fully logged out.';renderQuick()}
@@ -678,7 +692,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('#mentionSuggestions'
 setInterval(pollTyping,1500);
 
 async function ownerDeleteMailboxItem(type,id){
-  if(!account?.isOwner)return toast('Owner only.');
+  if(!clientIsOwner())return toast('Owner only.');
   if(!id)return toast('Missing mailbox item.');
   if(!confirm('Delete this mailbox item permanently?'))return;
   const r=await fetch('/api/owner/mailbox/delete',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({type,id})});
@@ -691,30 +705,96 @@ async function ownerDeleteMailboxItem(type,id){
 </script>
 <script id="lca-features-clean-ui">
 (function(){
- const role=()=>String(window.account?.role||'user').toLowerCase().replace(/[_-]+/g,' ');
- const isOwner=()=>!!window.account?.isOwner||role()==='owner';
- const isCoOwner=()=>!!window.account?.isCoOwner||role()==='co-owner';
+ const role=()=>String(account?.role||'user').trim().toLowerCase().replace(/[_-]+/g,' ');
+ const isOwner=()=>!!account?.isOwner||role()==='owner';
+ const isCoOwner=()=>!!account?.isCoOwner||role()==='co-owner';
  const canPoll=()=>isOwner()||isCoOwner()||role()==='server-admin';
  const canSlow=()=>canPoll()||role()==='mod'||role()==='admin';
- function panel(){let p=document.getElementById('lcaFeaturePanel');if(!p){p=document.createElement('div');p.id='lcaFeaturePanel';p.className='modalPanelLite';const main=document.querySelector('.main');const welcome=document.getElementById('serverWelcomeBanner');if(welcome)welcome.after(p);else if(main)main.prepend(p)}return p}
- function show(title,html){const p=panel();p.innerHTML='<b>'+title+'</b>'+html;p.scrollIntoView({block:'nearest'});}
+ function show(title,html){
+   modal(`<div class="popupHead"><h2>${title}</h2><button class="popupClose" onclick="closeModal()">×</button></div>${html}`);
+ }
  window.LCAFeatureUI={
-  browse:()=>show('🌐 Browse Servers','<p class="muted">Find public LCA servers.</p><input id="lcaServerSearch" class="field" placeholder="Server name or topic"><button class="btn" onclick="LCAFeatureUI.searchServers()">Search</button>'),
-  searchServers:()=>toast('🔎 Search is ready for: '+(document.getElementById('lcaServerSearch')?.value||'')),
-  members:()=>show('🔎 Server Member Search','<input id="lcaMemberSearch" class="field" placeholder="Username"><button class="btn" onclick="toast(\'Searching for \'+(document.getElementById(\'lcaMemberSearch\')?.value||\'\'))">Search</button>'),
-  block:()=>{const u=prompt('Username to block:');if(!u)return;let a=JSON.parse(localStorage.getItem('lca_blocked_users')||'[]');if(!a.includes(u))a.push(u);localStorage.setItem('lca_blocked_users',JSON.stringify(a));toast('🚫 '+u+' blocked.')},
+  browse:()=>show('🌐 Browse Servers','<p class="muted">Find public LCA servers.</p><input id="lcaServerSearch" class="field" placeholder="Server name"><button class="btn primary" onclick="LCAFeatureUI.searchServers()">Search</button><div id="lcaServerResults" style="margin-top:8px"></div>'),
+  searchServers:async()=>{
+    const q=document.getElementById('lcaServerSearch')?.value.trim();
+    const r=await fetch('/api/servers/public?q='+encodeURIComponent(q||''),{headers:{Authorization:'Bearer '+token}});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Could not search servers.');
+    const el=document.getElementById('lcaServerResults');
+    el.innerHTML=(d.servers||[]).map(x=>`<div class="ownerItem" style="margin:6px 0"><b>${esc(x.name)}</b><span class="muted"> ${x.voiceOnly?'🎙️ Voice':''}</span><button class="btn" style="float:right" onclick="LCAFeatureUI.join('${esc(x.name)}')">Join</button></div>`).join('')||'<p class="muted">No public servers found.</p>';
+  },
+  join:async(name)=>{
+    const r=await fetch('/api/join',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({name,code:''})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Could not join server.');
+    await sync();serverId=d.server.id;render();closeModal();toast('Joined '+d.server.name+'!');
+  },
+  members:()=>show('🔎 Server Member Search','<input id="lcaMemberSearch" class="field" placeholder="Username or name"><button class="btn primary" onclick="LCAFeatureUI.searchMembers()">Search</button><div id="lcaMemberResults" style="margin-top:8px"></div>'),
+  searchMembers:async()=>{
+    const q=document.getElementById('lcaMemberSearch')?.value.trim();
+    const r=await fetch('/api/players?q='+encodeURIComponent(q||''),{headers:{Authorization:'Bearer '+token}});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Could not search members.');
+    const el=document.getElementById('lcaMemberResults');
+    el.innerHTML=(d.accounts||[]).map(x=>`<div class="friendRow"><span class="avatar">${avatarHTML(x)}</span><b>${esc(x.name)}</b><span class="muted">@${esc(x.username)}</span><span class="spacer"></span><button class="btn" onclick="openUser('${esc(x.username)}')">Profile</button></div>`).join('')||'<p class="muted">No members found.</p>';
+  },
+  block:()=>{const u=prompt('Username to block:');if(!u)return;let a=JSON.parse(localStorage.getItem('lca_blocked_users')||'[]');const x=u.trim().toLowerCase();if(!a.includes(x))a.push(x);localStorage.setItem('lca_blocked_users',JSON.stringify(a));toast('🚫 '+x+' blocked.')},
   poll:()=>{if(!canPoll())return toast('Only Server Admin, Co-Owner, or Owner can create polls.');show('📊 Create Poll','<input id="lcaPollQ" class="field" placeholder="Question"><input id="lcaPollO" class="field" placeholder="Options separated by commas"><button class="btn primary" onclick="LCAFeatureUI.createPoll()">Create Poll</button>')},
-  createPoll:async()=>{const q=document.getElementById('lcaPollQ')?.value.trim(),opts=(document.getElementById('lcaPollO')?.value||'').split(',').map(x=>x.trim()).filter(Boolean);if(!q||opts.length<2)return toast('Enter a question and at least 2 options.');const sid=window.currentServer?.()?.id||window.serverId;const r=await fetch('/api/poll',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.token},body:JSON.stringify({serverId:sid,question:q,options:opts})});const d=await r.json().catch(()=>({}));if(!r.ok)return toast(d.error||'Poll failed.');await window.sync();toast('📊 Poll created.')},
-  slow:()=>{if(!canSlow())return toast('Staff only.');const t=prompt('Slow mode delay in seconds (0 to disable):','5');if(t===null)return;const sid=window.currentServer?.()?.id||window.serverId;fetch('/api/server/settings',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.token},body:JSON.stringify({serverId:sid,slowModeSeconds:Number(t)||0})}).then(r=>r.json().then(d=>{if(!r.ok)return toast(d.error||'Could not update slow mode.');toast('🐢 Slow mode updated.');window.sync?.()}))},
+  createPoll:async()=>{
+    const q=document.getElementById('lcaPollQ')?.value.trim(),opts=(document.getElementById('lcaPollO')?.value||'').split(',').map(x=>x.trim()).filter(Boolean);
+    if(!q||opts.length<2)return toast('Enter a question and at least 2 options.');
+    const sid=currentServer()?.id||serverId;
+    const r=await fetch('/api/poll',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({serverId:sid,question:q,options:opts})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Poll failed.');
+    await sync();closeModal();toast('📊 Poll created.');
+  },
+  slow:async()=>{
+    if(!canSlow())return toast('Staff only.');
+    const t=prompt('Slow mode delay in seconds (0 to disable):','5');
+    if(t===null)return;
+    const sid=currentServer()?.id||serverId,n=Number(t);
+    if(!Number.isFinite(n)||n<0||n>3600)return toast('Choose 0–3600 seconds.');
+    const r=await fetch('/api/server/settings',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({serverId:sid,slowModeSeconds:n})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Could not update slow mode.');
+    await sync();toast('🐢 Slow mode updated.');
+  },
   mute:()=>{if(!clientCanOwnerPanel())return toast('Only Co-Owner or Owner can mute.');show('🔇 Timed Mute','<input id="lcaMuteU" class="field" placeholder="Username"><input id="lcaMuteT" class="field" type="number" min="1" placeholder="Minutes"><button class="btn danger" onclick="LCAFeatureUI.doMute()">Mute</button>')},
-  doMute:async()=>{const u=document.getElementById('lcaMuteU')?.value.trim().toLowerCase(),t=Number(document.getElementById('lcaMuteT')?.value);if(!u||u===window.account?.username)return toast('You cannot mute yourself.');if(!t)return;const r=await fetch('/api/mod/mute',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.token},body:JSON.stringify({username:u,durationMinutes:t})});const d=await r.json().catch(()=>({}));if(!r.ok)return toast(d.error||'Mute failed.');toast('🔇 User muted.')},
+  doMute:async()=>{
+    const u=document.getElementById('lcaMuteU')?.value.trim().toLowerCase(),t=Number(document.getElementById('lcaMuteT')?.value);
+    if(!u||u===account?.username)return toast('You cannot mute yourself.');
+    if(!Number.isFinite(t)||t<1)return toast('Enter at least 1 minute.');
+    const r=await fetch('/api/mod/mute',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username:u,durationMinutes:t})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Mute failed.');
+    closeModal();toast('🔇 User muted.');
+  },
   icon:()=>{if(!clientCanOwnerPanel())return toast('Owner Panel access only.');show('🖼️ Server Icon','<input id="lcaIcon" class="field" placeholder="Paste an image URL"><button class="btn primary" onclick="LCAFeatureUI.saveIcon()">Save Icon</button>')},
-  saveIcon:async()=>{const sid=window.currentServer?.()?.id||window.serverId,icon=document.getElementById('lcaIcon')?.value.trim();if(!icon)return toast('Enter an image URL.');const r=await fetch('/api/server/settings',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.token},body:JSON.stringify({serverId:sid,icon})});const d=await r.json().catch(()=>({}));if(!r.ok)return toast(d.error||'Could not save icon.');await window.sync();toast('🖼️ Server icon saved.')},
-  saveWelcome:async()=>{const sid=window.currentServer?.()?.id||window.serverId,w=document.getElementById('lcaWelcome')?.value.trim();const r=await fetch('/api/server/settings',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.token},body:JSON.stringify({serverId:sid,welcomeMessage:w||'We’re glad you’re here! Be kind, have fun, and enjoy chatting. 💙'})});const d=await r.json().catch(()=>({}));if(!r.ok)return toast(d.error||'Could not save welcome.');await window.sync();toast('👋 Welcome message saved.')},
+  saveIcon:async()=>{
+    const sid=currentServer()?.id||serverId,icon=document.getElementById('lcaIcon')?.value.trim();
+    if(!icon)return toast('Enter an image URL.');
+    const r=await fetch('/api/server/settings',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({serverId:sid,icon})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Could not save icon.');
+    await sync();closeModal();toast('🖼️ Server icon saved.');
+  },
   reportAbuse:()=>show('🚨 Report Staff Abuse','<p class="muted">Send suspected staff abuse directly to the Owner Mailbox.</p><input id="lcaAbuseStaff" class="field" placeholder="Staff username"><input id="lcaAbuseReason" class="field" placeholder="Reason"><button class="btn danger" onclick="LCAFeatureUI.sendAbuse()">Send Report</button>'),
-  sendAbuse:async()=>{const staff=document.getElementById('lcaAbuseStaff')?.value.trim(),reason=document.getElementById('lcaAbuseReason')?.value.trim();if(!staff||!reason)return toast('Enter the staff username and reason.');const r=await fetch('/api/owner/staff-abuse',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.token},body:JSON.stringify({staff,reason})});const d=await r.json().catch(()=>({}));if(!r.ok)return toast(d.error||'Could not send report.');toast('📨 Sent to the Owner Mailbox.')}
+  sendAbuse:async()=>{
+    const staff=document.getElementById('lcaAbuseStaff')?.value.trim(),reason=document.getElementById('lcaAbuseReason')?.value.trim();
+    if(!staff||!reason)return toast('Enter the staff username and reason.');
+    const r=await fetch('/api/owner/staff-abuse',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({staff,reason})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Could not send report.');
+    closeModal();toast('📨 Sent to the Owner Mailbox.');
+  }
  };
- function updateFeatureVisibility(){document.querySelectorAll('.staffOnlyFeature').forEach(b=>{const f=b.dataset.feature;b.classList.toggle('hidden',(f==='poll'&&!canPoll())||(f==='slow'&&!canSlow()))})}
+ function updateFeatureVisibility(){
+   document.querySelectorAll('.staffOnlyFeature').forEach(b=>{
+     const f=b.dataset.feature;
+     b.classList.toggle('hidden',(f==='poll'&&!canPoll())||(f==='slow'&&!canSlow()));
+   });
+ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',updateFeatureVisibility);else updateFeatureVisibility();
  window.addEventListener('lca:rendered',updateFeatureVisibility);
 })();
