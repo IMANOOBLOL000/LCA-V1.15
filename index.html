@@ -29,6 +29,43 @@
 .tutorialProgress{font-size:12px;color:var(--muted)}
 
 .themeLight{--bg:#f5f7fb;--panel:#ffffff;--line:#d8e0ea;--text:#16202d;--muted:#64748b}.themeLight body{background:#f5f7fb;color:#16202d}.themeLight .main,.themeLight .composer{background:#fff}.themeLight .composeBox,.themeLight .preview,.themeLight .fileCard,.themeLight .modal{background:#f1f5f9;color:#16202d}.themeLight .msg .text{color:#245d9f}.themeLight .channelHead{background:#fff}.replyBox{border-left:3px solid #56a8ff;background:#10203899;padding:6px 9px;border-radius:6px;margin-bottom:6px;font-size:12px;color:#a9c9ed}.reactionRow{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.reaction{border:1px solid #2b4564;background:#102038;border-radius:999px;padding:3px 8px;color:#cfe5ff;cursor:pointer}.reaction.active{border-color:#56a8ff;background:#183a60}.messageActions{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}.typingIndicator{min-height:18px;padding:0 14px 5px;color:#7fa3c8;font-size:12px}.themeLight .typingIndicator{color:#64748b}.mentionSuggestions{position:absolute;left:12px;right:12px;bottom:64px;max-height:190px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px #0006;z-index:30;padding:5px}.mentionSuggestion{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;color:var(--text);padding:8px;border-radius:7px;text-align:left;cursor:pointer}.mentionSuggestion:hover{background:#2b4564}.themeLight .mentionSuggestion:hover{background:#e7eef7}.searchResult{padding:9px;border:1px solid #2b415e;border-radius:9px;margin:7px 0;cursor:pointer}.themeLight .searchResult{border-color:#d8e0ea}.mention{background:#315b8d;color:#fff;border-radius:4px;padding:0 2px}.gifPreview{max-width:360px;max-height:260px;border-radius:10px;margin-top:7px}
+
+/* LCA visual cleanup + theme/background stability */
+body{transition:background .25s ease,color .2s ease;}
+#app{background:transparent!important;}
+.top{background:rgba(11,21,34,.88);backdrop-filter:blur(14px);}
+.side{background:rgba(10,20,32,.82);backdrop-filter:blur(12px);}
+.main{background:rgba(7,13,21,.72);backdrop-filter:blur(10px);}
+.channelHead{background:rgba(9,18,29,.82);backdrop-filter:blur(12px);}
+.composer{background:rgba(9,18,29,.88);backdrop-filter:blur(12px);}
+.authCard,.modal{backdrop-filter:blur(18px);}
+.themeLight{color:#16202d!important;background:#eef3f8!important;}
+.themeLight #app{background:transparent!important;}
+.themeLight .top{background:rgba(255,255,255,.88)!important;color:#16202d;border-color:#d5dde7;}
+.themeLight .side{background:rgba(248,250,252,.88)!important;color:#16202d;border-color:#d5dde7;}
+.themeLight .main{background:rgba(255,255,255,.72)!important;color:#16202d;}
+.themeLight .channelHead,.themeLight .composer{background:rgba(255,255,255,.9)!important;color:#16202d;border-color:#d5dde7;}
+.themeLight .composeBox{background:#f1f5f9!important;border-color:#cbd5e1!important;}
+.themeLight .composeBox input{color:#16202d!important;}
+.themeLight .btn,.themeLight .server,.themeLight .member,.themeLight .profileBtn{color:#243244;background:#f7f9fc;border-color:#cbd5e1;}
+.themeLight .server:hover,.themeLight .server.active,.themeLight .member:hover{background:#e7eef7;color:#102033;}
+.themeLight .msg .text{color:#243f61;}
+.themeLight .msgname{color:#1769aa;}
+.themeLight .time,.themeLight .status,.themeLight .side h3{color:#718096;}
+.themeLight .emojiBtn,.themeLight .reaction{background:#fff;color:#243244;border-color:#cbd5e1;}
+.themeLight .modal,.themeLight .menu{background:rgba(255,255,255,.97);color:#16202d;border-color:#cbd5e1;}
+.themeLight .shopItem,.themeLight .ownerItem{background:#f7f9fc;border-color:#d8e0ea;}
+.themeLight .field{background:#fff;color:#16202d;border-color:#cbd5e1;}
+.themeLight .replyBox{background:#eaf2fb;color:#40556c;}
+.themeLight .mention{background:#dbeafe;color:#17538c;}
+.themeLight .mentionSuggestion:hover{background:#e7eef7;}
+.themeLight .searchResult{background:#f8fafc;}
+body[class*="bg-"]{background-size:cover;background-position:center;background-attachment:fixed;}
+body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.28));}
+.themeLight[class*="bg-"]::before{background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.32));}
+.tutorialCard{border:1px solid var(--line);border-radius:14px;padding:14px;background:rgba(255,255,255,.045);transition:transform .15s,background .15s;}
+.tutorialCard:hover{transform:translateY(-1px);background:rgba(255,255,255,.08);}
+.themeLight .tutorialCard{background:#f8fafc;}
 </style>
 </head>
 <body>
@@ -136,7 +173,7 @@ const TOKEN_KEY='LCA_ACTIVE_TOKEN',QUICK_KEY='LCA_QUICK_ACCOUNTS';
 try{localStorage.removeItem('LCA_LOCAL_DB_V11');}catch(e){}
 const sessionStore=()=>window.localStorage;
 let token=sessionStore().getItem(TOKEN_KEY)||'',account=null,serverId='home',poll=null,pollInFlight=false,lastActivity=Date.now(),rewardTimer=null,pendingFiles=[],recording=null,dmTimer=null;
-const emojis=['😀','😂','❤️','🔥','⭐','🚀','👻','🎉','👑','👍','😭','💀','🤔','🥳','💯','✨','🎮','😎'];
+const emojis=['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😎','🤩','🥳','😜','🤔','🫡','😮','😱','😴','😭','😡','🤯','💀','👻','🤖','💩','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💯','🔥','⭐','✨','🎉','🎊','🎮','🚀','👍','👎','👏','🙌','🙏','💪','👀','💎','👑'];
 const backgrounds=[
  ['forest','🌲 Forest'],['ocean','🌊 Ocean'],['mountain','🏔️ Mountains'],['sunset','🌅 Sunset'],['aurora','🌌 Aurora'],['desert','🏜️ Desert'],['city','🌃 City'],['lake','🏞️ Lake'],['space','🌠 Space'],['neon','💡 Neon'],['grid','▦ Cyber Grid'],['volcano','🌋 Volcano'],['canyon','🏜️ Canyon'],['rain','🌧️ Rainy Night'],['moon','🌙 Moonlit'],['clouds','☁️ Clouds'],['crystal','💎 Crystal Cave'],['arctic','🧊 Arctic'],['galaxy','🪐 Galaxy'],['meadow','🌼 Meadow'],['sakura','🌸 Sakura Night'],['storm','⛈️ Thunderstorm'],['deepsea','🌊 Deep Sea'],['snowfall','❄️ Snowfall'],['ember','🔥 Ember Glow']
 ];
@@ -280,7 +317,7 @@ function linkAccount(){toggleMenu();modal(`<h2>🔗 Link another account</h2><p 
 async function doLink(){const r=await fetch('/api/link',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username:$('linkName').value,password:$('linkPass').value})});const d=await r.json();if(!r.ok)return toast(d.error);closeModal();await sync();toast(d.message)}
 function customize(){toggleMenu();modal(`<h2>🎨 Backgrounds</h2><p class="muted">Free scenes are ready now. More designs can be unlocked in the shop.</p><div class="modalGrid">${backgrounds.map(([id,name])=>`<button class="btn" onclick="setBackground('${id}')">${name}${shopItems.some(x=>x[0]===id)&&!(account.inventory||[]).includes(id)?' — locked':''}</button>`).join('')}</div>`)}
 async function setBackground(id){const locked=shopItems.some(x=>x[0]===id)&&!(account.inventory||[]).includes(id);if(locked)return toast('Buy that background in the shop first.');const r=await fetch('/api/background',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id})});const d=await r.json();if(!r.ok)return toast(d.error);account.background=id;applyBackground();closeModal();toast('Background saved.')}
-function applyBackground(){document.body.className=account?.background?'bg-'+account.background:'';document.body.style.overflow='hidden';document.documentElement.style.overflow='hidden'}
+function applyBackground(){const light=localStorage.getItem('lca_theme')==='light';document.body.className=(account?.background?'bg-'+account.background:'')+(light?' themeLight':'');document.body.style.overflow='hidden';document.documentElement.style.overflow='hidden'}
 async function createServer(){const name=prompt('Give your server a name:');if(!name)return;const locked=confirm('Make this server private with a code?');let code='';if(locked){code=prompt('Choose a server code (4+ characters):')||'';if(code.length<4)return toast('Code must be at least 4 characters.')}const r=await fetch('/api/server',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({name,private:locked,code})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();serverId=d.server.id;render();toast('Server created!')}
 async function joinServer(){const name=prompt('Type the exact server name:');if(!name)return;const code=prompt('Server code (leave blank if public):')||'';const r=await fetch('/api/join',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({name,code})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();serverId=d.server.id;render();toast('Joined '+d.server.name+'!')}
 function openUser(username){let p=(account.membersByServer?.[currentServer()?.id]||[]).find(x=>x.username===username)||account.contacts?.find(x=>x.username===username);if(!p&&username===account.username)p=account;if(!p)return;modal(`<h2>${esc(p.name)} ${p.isOwner?'<span class="ownerTag">OWNER</span>':''}</h2><div class="avatar" style="width:70px;height:70px">${avatarHTML(p)}</div><p>${esc(p.description||'No description yet.')}</p>${username!==account.username?`<button class="btn primary" onclick="sendFriend('${esc(username)}')">＋ Friend Request</button><button class="btn" onclick="openDM('${esc(username)}')">💬 DM</button>`:'<div class="muted">This is your profile.</div>'}`)}
