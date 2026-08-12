@@ -107,7 +107,7 @@ body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none
 <header class="top"><div class="brand">LCA</div><div class="muted">Lucien's Chatting App</div><div class="topSpacer"></div><div class="points" id="points">0 pts</div><div class="points" id="diamonds">0 💎</div><button class="profileBtn" onclick="toggleMenu()"><span class="avatar" id="topAvatar">L</span><b id="topName">User</b>⌄</button></header>
 <aside class="side"><h3>Servers</h3><div id="servers"></div><button class="btn full" onclick="createServer()">＋ Create Server</button><button class="btn full" onclick="joinServer()">＋ Join Server</button><h3>Social</h3><button class="btn full" onclick="showFriends()">👥 Friends</button><button class="btn full" onclick="showShop()">🛒 Points Shop</button><button class="btn full" onclick="showPDExchange()">💱 PD Exchange</button><button class="btn full" onclick="ownerDiamondShop()">💎 Owners Shop</button></aside>
 <main class="main"><div class="channelHead"><span id="channelTitle" class="channelTitle">Home</span><span id="channelDesc" class="muted" style="margin-left:10px">Chat with people</span><span class="spacer"></span><button class="btn" onclick="searchMessages()">Search</button><button class="btn" onclick="showBookmarks()">Bookmarks</button><button class="btn" onclick="toggleTheme()" id="themeBtn">Light mode</button></div>
-<div id="lcaFeatureHub" class="lcaFeaturesBar" aria-label="LCA Features">
+<div id="lcaFeatureHub" id="lcaFeaturesBar" class="lcaFeaturesBar" aria-label="LCA Features">
   <button class="lcaFeaturesBtn" onclick="LCAFeatureUI.browse()">Browse Servers</button>
   <button class="lcaFeaturesBtn" onclick="LCAFeatureUI.members()">Member Search</button>
   <button class="lcaFeaturesBtn" onclick="LCAFeatureUI.voice()">Voice Channel</button>
@@ -668,7 +668,7 @@ async function ownerDeleteMailboxItem(type,id){
 </script>
 <script id="lca-features-real-ui">
 (function(){
- const rank=()=>String(window.account?.rank||window.currentUser?.rank||'').toLowerCase();
+ const rank=()=>String(window.account?.role||window.account?.rank||window.currentUser?.role||window.currentUser?.rank||'').toLowerCase().replace(/[_-]+/g,' ');
  const staff=['mod','admin','server admin','co-owner','owner'];
  const pollStaff=staff;
  const muteStaff=['co-owner','owner'];
@@ -689,28 +689,20 @@ async function ownerDeleteMailboxItem(type,id){
   members:()=>promptBox('Server Member Search','<input id="lcaMemberSearch" placeholder="Username"><button onclick="alert(\'Searching for \'+document.getElementById(\'lcaMemberSearch\').value)">Search</button>'),
   poll:()=>{if(!pollStaff.includes(rank()))return alert('Only Mod, Admin, Server Admin, Co-Owner, or Owner can create polls.');promptBox('Create Poll','<input id="lcaPollQ" placeholder="Question"><input id="lcaPollO" placeholder="Options: Yes, No"><button onclick="alert(\'Poll created\')">Create</button>')},
   mute:()=>{if(!muteStaff.includes(rank()))return alert('Only Co-Owner or Owner can mute.');promptBox('Mute User','<input id="lcaMuteU" placeholder="Username"><input id="lcaMuteT" type="number" min="1" placeholder="Minutes"><button onclick="LCAFeatureUI.doMute()">Mute</button>')},
-  doMute:async()=>{let u=document.getElementById('lcaMuteU')?.value,t=Number(document.getElementById('lcaMuteT')?.value);if(!u||u===window.account?.username)return alert('You cannot mute yourself.');if(!t)return;await fetch('/api/mod/mute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,durationMinutes:t})});alert('Mute applied.')},
+  doMute:async()=>{let u=document.getElementById('lcaMuteU')?.value,t=Number(document.getElementById('lcaMuteT')?.value);if(!u||u===window.account?.username)return alert('You cannot mute yourself.');if(!t)return;const r=await fetch('/api/mod/mute',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(window.token||'')},body:JSON.stringify({username:u,durationMinutes:t})});const d=await r.json().catch(()=>({}));if(!r.ok)return alert(d.error||'Mute failed.');alert('Mute applied.')},
   slow:()=>{if(!staff.includes(rank()))return alert('Staff only.');let t=prompt('Slow mode delay in seconds (0 to disable):','5');if(t!==null)alert('Slow mode set to '+t+' seconds.')},
   block:()=>{let u=prompt('Username to block:');if(!u)return;let a=JSON.parse(localStorage.getItem('lca_blocked_users')||'[]');if(!a.includes(u))a.push(u);localStorage.setItem('lca_blocked_users',JSON.stringify(a));alert(u+' blocked.')},
   voice:()=>alert('Voice channels are available from the server voice button.'),
   icon:()=>alert('Server icon controls are available to server owners/admins.'),
   welcome:()=>alert('Server welcome message controls are available to server owners/admins.')
  };
- function addBar(){
-  if(document.getElementById('lcaFeaturesBar'))return;
-  const b=document.createElement('div'); b.id='lcaFeaturesBar'; b.className='lcaFeaturesBar';
-  b.innerHTML='<button onclick="LCAFeatureUI.browse()">Browse Servers</button><button onclick="LCAFeatureUI.members()">Member Search</button><button onclick="LCAFeatureUI.voice()">Voice</button><button onclick="LCAFeatureUI.block()">Block</button><button onclick="LCAFeatureUI.icon()">Server Icon</button><button onclick="LCAFeatureUI.welcome()">Welcome</button><button onclick="LCAFeatureUI.poll()">Poll</button><button onclick="LCAFeatureUI.mute()">Mute</button><button onclick="LCAFeatureUI.slow()">Slow Mode</button>';
-  const target=document.querySelector('.app,.main,.content,main')||document.body;
-  target.prepend(b);
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addBar);else addBar();
 })();
 </script>
 
 <script id="lca-feature-handlers">
 (function(){
   window.LCAFeatureUI=window.LCAFeatureUI||{};
-  const rank=()=>String(window.account?.rank||window.currentUser?.rank||'').toLowerCase();
+  const rank=()=>String(window.account?.role||window.account?.rank||window.currentUser?.role||window.currentUser?.rank||'').toLowerCase().replace(/[_-]+/g,' ');
   const staff=['mod','admin','server admin','co-owner','owner'];
   const pollStaff=staff;
   const muteStaff=['co-owner','owner'];
