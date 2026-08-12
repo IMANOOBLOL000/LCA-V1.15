@@ -31,7 +31,3 @@ The app keeps the 1-second quiet live synchronization feature. It does not force
 
 ## New user tutorial
 Newly registered accounts receive an in-app tutorial covering servers, chat, voice messages, friends/DMs, live updates, points/diamonds, safety, and role permissions. The tutorial is shown once per account/browser and can be completed with Next/Back or Start LCA.
-
-
-## Login persistence
-Active login sessions are stored in browser local storage so closing/reopening the Chromebook or browser does not log the user out. The Logout button explicitly removes the active session.
