@@ -251,7 +251,7 @@ app.post('/api/owner-shop/buy',auth,(req,res)=>{
   a.diamonds-=item.cost; a.ownerShopPurchases=(a.ownerShopPurchases||0)+1; save(db);
   res.json({ok:true,message:item.name+' complete.',diamonds:a.diamonds,points:a.points,dropMultiplier:id==='diamondDrop'?a.diamondDropMultiplier:undefined,afkGraceMinutesRemaining:id==='afkGraceDay'?a.afkGraceMinutesRemaining:undefined});
 });
-app.post('/api/owner/role',ownerControl,(req,res)=>{const db=req.db,target=String(req.body?.username||'').toLowerCase(),role=String(req.body?.role||'user').toLowerCase(),serverId=String(req.body?.serverId||'');if(!db.accounts[target])return res.status(404).json({error:'Account not found.'});if(target===OWNER_USERNAME)return res.status(400).json({error:'The owner cannot be changed.'});if(!['user','mod','admin','server-admin','co-owner'].includes(role))return res.status(400).json({error:'Invalid role.'});if(req.account.username!==OWNER_USERNAME&&role==='co-owner')return res.status(403).json({error:'Only the owner can grant Co-Owner.'});const a=db.accounts[target];a.role=role;if(role==='co-owner'){a.coOwnerPointGrantRemaining=5000;a.coOwnerDiamondGrantRemaining=300;a.serverAdminServerId='';a.serverAdminExpiresAt=0}else if(role==='server-admin'){if(!db.servers[serverId]||db.servers[serverId].isUpdateLog)return res.status(400).json({error:'Choose a valid server.'});a.serverAdminServerId=serverId;a.serverAdminExpiresAt=Date.now()+3600000;a.servers=a.servers||[];if(!a.servers.includes(serverId))a.servers.push(serverId);if(!db.servers[serverId].members.includes(target))db.servers[serverId].members.push(target)}else{a.serverAdminServerId='';a.serverAdminExpiresAt=0}save(db);res.json({ok:true,account:clean(a)});});
+app.post('/api/owner/role',auth,(req,res)=>{if(req.username!==OWNER_USERNAME)return res.status(403).json({error:'Only the owner can change ranks.'});const db=req.db,target=String(req.body?.username||'').toLowerCase(),role=String(req.body?.role||'user').toLowerCase(),serverId=String(req.body?.serverId||'');if(!db.accounts[target])return res.status(404).json({error:'Account not found.'});if(target===OWNER_USERNAME)return res.status(400).json({error:'The owner cannot be changed.'});if(!['user','mod','admin','server-admin','co-owner'].includes(role))return res.status(400).json({error:'Invalid role.'});if(req.account.username!==OWNER_USERNAME&&role==='co-owner')return res.status(403).json({error:'Only the owner can grant Co-Owner.'});const a=db.accounts[target];a.role=role;if(role==='co-owner'){a.coOwnerPointGrantRemaining=5000;a.coOwnerDiamondGrantRemaining=300;a.serverAdminServerId='';a.serverAdminExpiresAt=0}else if(role==='server-admin'){if(!db.servers[serverId]||db.servers[serverId].isUpdateLog)return res.status(400).json({error:'Choose a valid server.'});a.serverAdminServerId=serverId;a.serverAdminExpiresAt=Date.now()+3600000;a.servers=a.servers||[];if(!a.servers.includes(serverId))a.servers.push(serverId);if(!db.servers[serverId].members.includes(target))db.servers[serverId].members.push(target)}else{a.serverAdminServerId='';a.serverAdminExpiresAt=0}save(db);res.json({ok:true,account:clean(a)});});
 app.get('/api/owner/search',ownerControl,(req,res)=>{const db=req.db,q=String(req.query?.q||'').trim().toLowerCase();const accounts=Object.values(db.accounts).filter(a=>!q||a.username.includes(q)||String(a.name||'').toLowerCase().includes(q)).slice(0,100).map(clean);res.json({accounts});});
 app.get('/api/players',auth,(req,res)=>{const db=req.db,q=String(req.query?.q||'').trim().toLowerCase();const accounts=Object.values(db.accounts).filter(a=>a.username!==req.username&&(!q||a.username.includes(q)||String(a.name||'').toLowerCase().includes(q))).slice(0,100).map(clean);res.json({accounts})});
 app.post('/api/owner/points',ownerControl,(req,res)=>{const db=req.db,grantor=req.account,target=String(req.body?.username||grantor.username).toLowerCase(),amount=Math.floor(Number(req.body?.amount||0));if(!db.accounts[target])return res.status(404).json({error:'Player not found.'});if(!Number.isFinite(amount)||amount===0)return res.status(400).json({error:'Enter a non-zero points amount.'});if(grantor.username!==OWNER_USERNAME){if(grantor.role!=='co-owner')return res.status(403).json({error:'Only the owner can grant points.'});if(amount<0)return res.status(403).json({error:'Co-Owners cannot remove points.'});if(amount>Number(grantor.coOwnerPointGrantRemaining||0))return res.status(400).json({error:`Co-Owner point grant limit remaining: ${grantor.coOwnerPointGrantRemaining||0}.`});grantor.coOwnerPointGrantRemaining-=amount;}db.accounts[target].points=Math.max(0,(db.accounts[target].points||0)+amount);save(db);res.json({ok:true,message:`${amount>=0?'Gave':'Removed'} ${Math.abs(amount)} points ${amount>=0?'to':'from'} ${db.accounts[target].name}.`,points:db.accounts[target].points,remainingPoints:grantor.username===OWNER_USERNAME?null:grantor.coOwnerPointGrantRemaining});});
@@ -384,6 +384,19 @@ app.post('/api/reports/decision',auth,(req,res)=>{
   }
   res.status(400).json({error:'Choose Ban or Let Go.'});
 });
+app.post('/api/staff/request-unban',auth,(req,res)=>{
+  const role=effectiveRole(req.account);
+  if(!['mod','admin','server-admin','co-owner'].includes(role))return res.status(403).json({error:'Staff access only.'});
+  const username=String(req.body?.username||'').trim().toLowerCase(),message=String(req.body?.message||'').trim().slice(0,1500);
+  const db=req.db,target=db.accounts[username];
+  if(!target)return res.status(404).json({error:'Player not found.'});
+  const active=target.permanentBan||(target.banUntil&&Number(target.banUntil)>Date.now());
+  if(!active)return res.status(400).json({error:'That player is not currently banned.'});
+  if(!message)return res.status(400).json({error:'Explain why the owner should consider the unban.'});
+  db.ownerInbox=db.ownerInbox||[];
+  db.ownerInbox.unshift({id:'owner_unban_'+crypto.randomBytes(10).toString('hex'),type:'unban-request',from:req.username,fromName:req.account.name||req.username,username,targetUsername:username,targetName:target.name||username,reason:message,createdAt:new Date().toISOString(),status:'new'});
+  db.ownerInbox=db.ownerInbox.slice(0,300);save(db);res.json({ok:true});
+});
 app.get('/api/owner/inbox',auth,(req,res)=>{
   if(req.username!==OWNER_USERNAME)return res.status(403).json({error:'Owner access only.'});
   const db=req.db;db.ownerInbox=db.ownerInbox||[];db.banAppeals=db.banAppeals||[];releaseExpiredReportClaims(db);save(db);
@@ -418,9 +431,14 @@ app.post('/api/owner/inbox/decision',auth,(req,res)=>{
   }
   res.status(400).json({error:'Unknown mailbox item.'});
 });
+app.get('/api/owner/staff-list',auth,(req,res)=>{
+  if(req.username!==OWNER_USERNAME)return res.status(403).json({error:'Owner access only.'});
+  const staff=Object.values(req.db.accounts).filter(a=>['mod','admin','server-admin','co-owner'].includes(effectiveRole(a))).map(clean);
+  res.json({staff});
+});
 app.get('/api/owner/messages',ownerControl,(req,res)=>{const db=req.db;let all=[];for(const a of Object.values(db.accounts))all=all.concat(a.messages||[]);res.json({messages:all.sort((x,y)=>String(y.createdAt).localeCompare(String(x.createdAt))).slice(0,200)});});
 
-app.post('/api/owner/unban',ownerControl,(req,res)=>{if(req.username!==OWNER_USERNAME)return res.status(403).json({error:'Owner access only.'});const db=req.db,username=String(req.body?.username||'').toLowerCase(),target=db.accounts[username];if(!target)return res.status(404).json({error:'Player not found.'});target.banUntil=0;target.permanentBan=false;target.banReason='';save(db);res.json({ok:true,message:`${target.name} is unbanned.`})});
+app.post('/api/owner/unban',auth,(req,res)=>{if(req.username!==OWNER_USERNAME)return res.status(403).json({error:'Owner access only.'});const db=req.db,username=String(req.body?.username||'').toLowerCase(),target=db.accounts[username];if(!target)return res.status(404).json({error:'Player not found.'});target.banUntil=0;target.permanentBan=false;target.banReason='';save(db);res.json({ok:true,message:`${target.name} is unbanned.`})});
 app.post('/api/owner/pin-message',ownerControl,(req,res)=>{const db=req.db,id=String(req.body?.id||'');for(const a of Object.values(db.accounts))for(const m of(a.messages||[]))if(m.id===id){const srv=db.servers[m.server];if(!srv)return res.status(404).json({error:'Server not found.'});srv.pinnedMessageId=srv.pinnedMessageId===id?'':id;m.pinned=srv.pinnedMessageId===id;save(db);return res.json({ok:true,pinned:m.pinned})}res.status(404).json({error:'Message not found.'})});
 app.post('/api/owner/pin',ownerControl,(req,res)=>{const db=req.db,id=String(req.body?.id||'');for(const a of Object.values(db.accounts))for(const m of(a.messages||[]))if(m.id===id){m.pinned=!m.pinned;save(db);return res.json({ok:true,pinned:m.pinned})}res.status(404).json({error:'Message not found.'})});
 app.post('/api/owner/edit-message',ownerControl,(req,res)=>{const db=req.db,id=String(req.body?.id||''),text=String(req.body?.text||'').slice(0,4000);for(const a of Object.values(db.accounts)){const m=(a.messages||[]).find(x=>x.id===id);if(m){m.text=text;m.originalText='';m.userEdited=false;m.editedBy=OWNER_USERNAME;m.editedAt=new Date().toISOString();save(db);return res.json({ok:true})}}res.status(404).json({error:'Message not found.'})});
@@ -429,37 +447,30 @@ app.post('/api/owner/delete-message',ownerControl,(req,res)=>{const db=req.db,id
 loadPersistent().then(()=>app.listen(PORT,()=>console.log('LCA online server listening on '+PORT))).catch(e=>{console.error(e);process.exit(1)});
 
 
-app.post('/api/owner/mailbox/delete', (req,res)=>{
-  const a=req.account||req.user;
-  if(!a || a.username!==OWNER_USERNAME) return res.status(403).json({error:'Owner only.'});
-  const type=String(req.body?.type||'').toLowerCase();
-  const id=String(req.body?.id||'');
-  if(!id) return res.status(400).json({error:'Missing item id.'});
+app.post('/api/owner/mailbox/delete',auth,(req,res)=>{
+  if(req.username!==OWNER_USERNAME)return res.status(403).json({error:'Only the owner can delete mailbox items.'});
+  const db=req.db, type=String(req.body?.type||''), id=String(req.body?.id||'');
+  if(!id)return res.status(400).json({error:'Missing mailbox item id.'});
   let removed=false;
-  const db=req.db||DB;
-  const collections = {
-    report: ['reports','reportMailbox'],
-    reports: ['reports','reportMailbox'],
-    owner: ['ownerMailbox','ownerMessages','mailbox'],
-    mailbox: ['ownerMailbox','ownerMessages','mailbox'],
-    unban: ['unbanRequests','unbanAppeals']
-  };
-  for(const key of (collections[type]||collections.mailbox)){
-    if(Array.isArray(db[key])){
-      const before=db[key].length;
-      db[key]=db[key].filter(x=>String(x?.id||x?._id||'')!==id);
-      if(db[key].length!==before) removed=true;
-    }
+  if(type==='report'){
+    const before=(db.reports||[]).length;
+    db.reports=(db.reports||[]).filter(x=>x.id!==id);
+    removed=db.reports.length!==before;
+  }else if(type==='request'||type==='review-timeout'||type==='ban-extension'||type==='unban-request'){
+    const before=(db.ownerInbox||[]).length;
+    db.ownerInbox=(db.ownerInbox||[]).filter(x=>x.id!==id);
+    removed=db.ownerInbox.length!==before;
+  }else if(type==='appeal'){
+    const before=(db.banAppeals||[]).length;
+    db.banAppeals=(db.banAppeals||[]).filter(x=>x.id!==id);
+    removed=db.banAppeals.length!==before;
+  }else if(type==='registration'){
+    const before=(db.registrationInbox||[]).length;
+    db.registrationInbox=(db.registrationInbox||[]).filter(x=>x.id!==id);
+    removed=db.registrationInbox.length!==before;
+  }else{
+    return res.status(400).json({error:'Unknown mailbox type.'});
   }
-  if(!removed){
-    for(const key of Object.keys(db)){
-      if(!/mail|report|appeal/i.test(key)||!Array.isArray(db[key])) continue;
-      const before=db[key].length;
-      db[key]=db[key].filter(x=>String(x?.id||x?._id||'')!==id);
-      if(db[key].length!==before) removed=true;
-    }
-  }
-  if(!removed) return res.status(404).json({error:'Mailbox item not found.'});
-  save(db);
-  res.json({ok:true});
+  if(!removed)return res.status(404).json({error:'Mailbox item not found.'});
+  save(db);res.json({ok:true});
 });
