@@ -189,7 +189,7 @@ function calcAge(b){if(!b)return 99;const d=new Date(b),n=new Date();let a=n.get
 function birthday(){const m=+$('dobM').value,d=+$('dobD').value,y=+$('dobY').value;return m&&d&&y?`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`:''}
 
 function showNewUserTutorial(username){
-  const key='lca_tutorial_seen_v3_'+String(username||'').toLowerCase();
+  const key='lca_tutorial_seen_v4_'+String(username||'').toLowerCase();
   if(localStorage.getItem(key))return;
   const pages=[
     {title:'Welcome to LCA! 👋',text:'LCA is your place to chat, make friends, join servers, share files, and customize your profile. Here is a quick tour before you start.',cards:[
@@ -201,7 +201,7 @@ function showNewUserTutorial(username){
     {title:'Chat like a pro 💬',text:'Here are the tools you can use while messaging.',cards:[
       ['↩️ Reply','Use Reply on a message to respond directly to it and keep the conversation easy to follow.'],
       ['👍 Reactions','React to messages with available reactions instead of sending a separate message.'],
-      ['@ Mentions','Mention someone with @username when you want to get their attention.'],
+      ['@ Mentions','Type @ to see mention suggestions, then choose the person you want to mention.'],
       ['🔎 Search','Use message search to find messages instead of scrolling through everything.']
     ]},
     {title:'Share and save things 📎',text:'LCA lets you do more than just type.',cards:[
@@ -214,19 +214,31 @@ function showNewUserTutorial(username){
       ['🟢 Online status','See whether friends are online or offline when their status is available.'],
       ['⌨️ Typing','When a friend is typing, LCA can show a typing indicator for that private conversation.'],
       ['🔔 Live updates','Messages and other changes update automatically, so you normally do not need to refresh.'],
-      ['📌 Pins','Important messages can be pinned so they are easier to find.']
+      ['📌 Pins','Important messages can be pinned so they are easier to find later.']
     ]},
     {title:'Make LCA yours 🎨',text:'Customize the way LCA looks and use its extra features.',cards:[
       ['🌙 Dark / Light','Choose the appearance that feels best for you.'],
       ['🖼️ Backgrounds','Customize your LCA background with available scenes and backgrounds.'],
       ['⭐ Points & 💎 Diamonds','Earn and use LCA currencies for available shop features.'],
-      ['👤 Profile & Reports','Click another user profile to view it and use Report to report a rule violation. The username is filled in for you.']
+      ['👤 Profiles','Open a user profile to view the profile and available actions.']
+    ]},
+    {title:'Report safely 🚨',text:'If you see a rule violation, use the reporting system instead of arguing with the person.',cards:[
+      ['📸 Report from a profile','Open the user profile and choose Report. Add what happened and attach a screenshot when possible.'],
+      ['📬 Staff review','Reports are sent to the staff mailbox. Staff may see who is reviewing a report so two staff members do not review the same report at once.'],
+      ['⚖️ Staff decisions','A staff reviewer must make a decision: Ban or Let Go. If a report is left without a decision for 24 hours, another staff member can review it.'],
+      ['🛡️ False reports','Do not make fake or abusive reports. A reviewer may take action against a user who intentionally misuses the reporting system.']
+    ]},
+    {title:'If you are banned 📨',text:'If staff ban your account and you believe the decision was wrong, you can ask the owner to review it.',cards:[
+      ['📨 Request an unban','Use the unban request option available to a banned account and explain why you believe you are innocent.'],
+      ['📎 Provide proof','Include useful evidence, such as screenshots or other information that supports your explanation.'],
+      ['👑 Owner review','The owner can review ban requests and decide whether the ban should stay or be removed.'],
+      ['⏳ Be patient','Reviews can take time. Do not spam staff or create another account to avoid a ban.']
     ]},
     {title:'Stay safe 🛡️',text:'A few important things to remember before you start.',cards:[
       ['🔐 Protect your account','Never share your password, login token, or other account information.'],
-      ['🚨 Report someone','Click the person profile, choose Report, explain what happened, and attach a screenshot. Reports are sent to the staff mailbox.'],
       ['🚫 No harassment','Be respectful. Do not threaten, bully, stalk, scam, doxx, or target other users.'],
-      ['📜 Read the Rules','Check the Rules server before participating so you know what is and is not allowed.']
+      ['📜 Read the Rules','Check the Rules server before participating so you know what is and is not allowed.'],
+      ['🚨 Report problems','If someone violates the rules, report it with honest information and a screenshot when possible.']
     ]},
     {title:'You are ready! 🎉',text:'That is the basics. Explore LCA, meet people, and have fun. You can close this tutorial at any time.',cards:[
       ['💡 Tip','If you are unsure what a button does, try the menus and look for its label or description.'],
