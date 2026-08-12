@@ -606,6 +606,18 @@ boot();
 $('messageInput').addEventListener('input',onMessageInput);
 document.addEventListener('click',e=>{if(!e.target.closest('#mentionSuggestions')&&!e.target.closest('#messageInput'))$('mentionSuggestions').style.display='none'});
 setInterval(pollTyping,1500);
+
+async function ownerDeleteMailboxItem(type,id){
+  if(!account?.isOwner)return toast('Owner only.');
+  if(!id)return toast('Missing mailbox item.');
+  if(!confirm('Delete this mailbox item permanently?'))return;
+  const r=await fetch('/api/owner/mailbox/delete',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({type,id})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)return toast(d.error||'Could not delete mailbox item.');
+  toast('Mailbox item deleted.');
+  if(typeof ownerPanel==='function') ownerPanel();
+  if(typeof staffPanel==='function') staffPanel();
+}
 </script>
 </body>
 </html>

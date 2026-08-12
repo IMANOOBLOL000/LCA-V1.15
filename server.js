@@ -413,3 +413,39 @@ app.post('/api/owner/edit-message',ownerControl,(req,res)=>{const db=req.db,id=S
 app.post('/api/owner/delete-message',ownerControl,(req,res)=>{const db=req.db,id=String(req.body?.id||'');for(const a of Object.values(db.accounts)){const before=a.messages.length;a.messages=a.messages.filter(x=>x.id!==id);if(a.messages.length!==before){save(db);return res.json({ok:true})}}res.status(404).json({error:'Message not found.'})});
 
 loadPersistent().then(()=>app.listen(PORT,()=>console.log('LCA online server listening on '+PORT))).catch(e=>{console.error(e);process.exit(1)});
+
+
+app.post('/api/owner/mailbox/delete', (req,res)=>{
+  const a=req.account||req.user;
+  if(!a || a.username!==OWNER_USERNAME) return res.status(403).json({error:'Owner only.'});
+  const type=String(req.body?.type||'').toLowerCase();
+  const id=String(req.body?.id||'');
+  if(!id) return res.status(400).json({error:'Missing item id.'});
+  let removed=false;
+  const db=req.db||DB;
+  const collections = {
+    report: ['reports','reportMailbox'],
+    reports: ['reports','reportMailbox'],
+    owner: ['ownerMailbox','ownerMessages','mailbox'],
+    mailbox: ['ownerMailbox','ownerMessages','mailbox'],
+    unban: ['unbanRequests','unbanAppeals']
+  };
+  for(const key of (collections[type]||collections.mailbox)){
+    if(Array.isArray(db[key])){
+      const before=db[key].length;
+      db[key]=db[key].filter(x=>String(x?.id||x?._id||'')!==id);
+      if(db[key].length!==before) removed=true;
+    }
+  }
+  if(!removed){
+    for(const key of Object.keys(db)){
+      if(!/mail|report|appeal/i.test(key)||!Array.isArray(db[key])) continue;
+      const before=db[key].length;
+      db[key]=db[key].filter(x=>String(x?.id||x?._id||'')!==id);
+      if(db[key].length!==before) removed=true;
+    }
+  }
+  if(!removed) return res.status(404).json({error:'Mailbox item not found.'});
+  save(db);
+  res.json({ok:true});
+});
