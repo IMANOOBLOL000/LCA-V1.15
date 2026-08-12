@@ -310,6 +310,14 @@ app.get('/api/reports',auth,(req,res)=>{
   if(!staffReviewRole(req.account))return res.status(403).json({error:'Admin access only.'});
   releaseExpiredReportClaims(req.db);save(req.db);res.json({reports:(req.db.reports||[]).slice(0,200)});
 });
+app.post('/api/reports/delete',auth,(req,res)=>{
+  if(!staffReviewRole(req.account))return res.status(403).json({error:'Admin access only.'});
+  const db=req.db,id=String(req.body?.id||''),report=(db.reports||[]).find(x=>x.id===id);
+  if(!report)return res.status(404).json({error:'Report not found.'});
+  if(report.status!=='decided')return res.status(400).json({error:'The report can only be deleted after a decision is made.'});
+  db.reports=(db.reports||[]).filter(x=>x.id!==id);
+  save(db);res.json({ok:true});
+});
 app.post('/api/reports/claim',auth,(req,res)=>{
   if(!staffReviewRole(req.account))return res.status(403).json({error:'Admin access only.'});
   const db=req.db,id=String(req.body?.id||''),report=(db.reports||[]).find(x=>x.id===id);
