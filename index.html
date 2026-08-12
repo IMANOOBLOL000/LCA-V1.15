@@ -91,7 +91,7 @@ body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none
 <aside class="side right"><h3>People</h3><div id="members"></div></aside>
 </section>
 
-<div id="menuWrap" class="menuWrap hidden" onclick="if(event.target.id==='menuWrap')toggleMenu()"><div class="menu"><div class="menuHead"><span class="avatar" id="menuAvatar">L</span><div><b id="menuName">User</b><div class="muted">Your profile</div></div></div><button class="btn" onclick="editProfile()">✏️ Edit Profile</button><button class="btn" onclick="accountSwitcher()">👥 Switch Accounts</button><button class="btn" onclick="linkAccount()">🔗 Link an Account</button><button class="btn" onclick="customize()">🎨 Backgrounds</button><button id="ownerButton" class="btn hidden" onclick="ownerPanel()">👑 Owner Panel</button><button id="ownerShopButton" class="btn" onclick="ownerDiamondShop()">💎 Owners Shop</button><button id="modButton" class="btn hidden" onclick="staffPanel()">🛡️ Staff Panel</button><button id="mailboxButton" class="btn hidden" onclick="showReportMailbox()">📬 Report Mailbox</button><button class="btn danger" onclick="logout()">↪ Log out</button></div></div>
+<div id="menuWrap" class="menuWrap hidden" onclick="if(event.target.id==='menuWrap')toggleMenu()"><div class="menu"><div class="menuHead"><span class="avatar" id="menuAvatar">L</span><div><b id="menuName">User</b><div class="muted">Your profile</div></div></div><button class="btn" onclick="editProfile()">✏️ Edit Profile</button><button class="btn" onclick="accountSwitcher()">👥 Switch Accounts</button><button class="btn" onclick="linkAccount()">🔗 Link an Account</button><button class="btn" onclick="customize()">🎨 Backgrounds</button><button id="ownerButton" class="btn hidden" onclick="ownerPanel()">👑 Owner Panel</button><button id="ownerShopButton" class="btn" onclick="ownerDiamondShop()">💎 Owners Shop</button><button id="modButton" class="btn hidden" onclick="staffPanel()">🛡️ Staff Panel</button><button id="mailboxButton" class="btn hidden" onclick="showReportMailbox()">📬 Report Mailbox</button><button id="ownerMailboxButton" class="btn hidden" onclick="showOwnerMailbox()">📨 Owner Mailbox</button><button class="btn danger" onclick="logout()">↪ Log out</button></div></div>
 <div id="modalRoot"></div>
 <script>
 /* LCA offline/file:// mode: lets index.html run from Downloads without a Node server. */
@@ -288,7 +288,7 @@ async function sync(){
 }
 function startRewards(){if(rewardTimer)clearInterval(rewardTimer);rewardTimer=setInterval(async()=>{if(!token||!account)return;try{const r=await fetch('/api/points/reward',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({minutes:1})});if(r.ok){const d=await r.json();account.points=d.points;renderPoints()}}catch(e){}},60000)}
 ['keydown','pointerdown','mousemove','touchstart'].forEach(e=>document.addEventListener(e,()=>{lastActivity=Date.now()},{passive:true}));
-function render(){if(!account)return;renderPoints();renderTMTimer();$('mailboxButton').classList.toggle('hidden',!(account.isOwner||account.isCoOwner||account.role==='admin'));$('topName').textContent=account.name;$('menuName').textContent=account.name;$('topAvatar').innerHTML=avatarHTML(account);$('menuAvatar').innerHTML=avatarHTML(account);$('ownerButton').classList.toggle('hidden',!(account.isOwner||account.isCoOwner||Number(account.ownerPanelTrialRemainingMs||0)>0));$('ownerShopButton').classList.remove('hidden');$('modButton').classList.toggle('hidden',!['mod','admin','server-admin'].includes(account.role));$('modButton').textContent=account.role==='server-admin'?'🕐 Server Admin Panel':account.role==='admin'?'🧰 Admin Panel':'🛡️ Staff Panel';renderServers();renderMessages();renderMembers();applySafety();applyBackground()}
+function render(){if(!account)return;renderPoints();renderTMTimer();$('mailboxButton').classList.toggle('hidden',!(account.isOwner||account.isCoOwner||account.role==='admin'));$('ownerMailboxButton').classList.toggle('hidden',!account.isOwner);$('topName').textContent=account.name;$('menuName').textContent=account.name;$('topAvatar').innerHTML=avatarHTML(account);$('menuAvatar').innerHTML=avatarHTML(account);$('ownerButton').classList.toggle('hidden',!(account.isOwner||account.isCoOwner||Number(account.ownerPanelTrialRemainingMs||0)>0));$('ownerShopButton').classList.remove('hidden');$('modButton').classList.toggle('hidden',!['mod','admin','server-admin'].includes(account.role));$('modButton').textContent=account.role==='server-admin'?'🕐 Server Admin Panel':account.role==='admin'?'🧰 Admin Panel':'🛡️ Staff Panel';renderServers();renderMessages();renderMembers();applySafety();applyBackground()}
 function avatarHTML(a){return a.avatar?`<img src="${a.avatar}" alt="">`:esc(initials(a.name))}
 function renderPoints(){$('points').textContent=`${account?.points||0} pts`;if($('diamonds'))$('diamonds').textContent=`${account?.diamonds||0} 💎`}
 function renderServers(){const list=account.servers||[];$('servers').innerHTML=list.map(s=>`<div class="server ${s.id===serverId?'active':''}" onclick="selectServer('${esc(s.id)}')"><span class="serverIcon">${s.isUpdateLog?'📜':(s.private?'🔒':'💬')}</span><span class="serverName">${esc(s.name)}</span></div>`).join('')}
@@ -375,7 +375,29 @@ async function ownerPin(id){const r=await fetch('/api/owner/pin-message',{method
 async function ownerKick(username){const chosen=prompt('Server ID to kick them from:',window.serverId||serverId||'');const serverId=chosen||window.serverId||'';if(!serverId)return;const r=await fetch('/api/owner/kick',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username,server:serverId})});const d=await r.json();if(!r.ok)return toast(d.error);await sync();loadOwnerAccounts($('roleSearch')?.value||'');toast('👢 '+d.message)}
 async function ownerUnban(username){if(!confirm('Unban '+username+'?'))return;const r=await fetch('/api/owner/unban',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username})});const d=await r.json();if(!r.ok)return toast(d.error);loadOwnerAccounts($('roleSearch')?.value||'');toast('🔓 '+d.message)}
 async function ownerBan(username){const raw=prompt('Ban duration in minutes. Enter 0 for permanent:','10');if(raw===null)return;const minutes=Number(raw);if(!Number.isFinite(minutes)||minutes<0)return toast('Enter 0 or a positive number.');const reason=prompt('Reason (optional):','Rule violation')||'';if(!confirm(`Ban ${username} ${minutes===0?'permanently':'for '+minutes+' minute(s)'}?`))return;const r=await fetch('/api/owner/ban',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username,minutes,reason})});const d=await r.json();if(!r.ok)return toast(d.error);loadOwnerAccounts($('roleSearch')?.value||'');toast('🚫 '+d.message)}
-function showBanScreen(until,reason){if(window.banTimer)clearInterval(window.banTimer);const permanent=!until||Number(until)===0;modal(`<h2 style="font-size:28px">🚫 You are banned</h2><p class="muted">You cannot use LCA while this ban is active.</p><div id="banCountdown" style="font-size:34px;font-weight:900;margin:18px 0">${permanent?'PERMANENT':'Calculating...'}</div>${reason?`<div class="ownerItem"><b>Reason</b><div>${esc(reason)}</div></div>`:''}<p class="muted">If the timer reaches zero, you can log in again.</p>`);if(!permanent){const tick=()=>{const left=Math.max(0,Number(until)-Date.now());if(left<=0){clearInterval(window.banTimer);window.banTimer=null;closeModal();$('authMsg').textContent='Your ban has expired. You can log in again.';return}const sec=Math.ceil(left/1000),h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),ss=sec%60;$('banCountdown').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`};tick();window.banTimer=setInterval(tick,250)}}
+function showBanScreen(until,reason){
+  if(window.banTimer)clearInterval(window.banTimer);
+  const permanent=!until||Number(until)===0,username=($('authName')?.value||'').trim().toLowerCase();
+  modal(`<h2 style="font-size:28px">🚫 You are banned</h2><p class="muted">You cannot use LCA while this ban is active.</p><div id="banCountdown" style="font-size:34px;font-weight:900;margin:18px 0">${permanent?'PERMANENT':'Calculating...'}</div>${reason?`<div class="ownerItem"><b>Reason</b><div>${esc(reason)}</div></div>`:''}<p class="muted">If you believe this ban is wrong, you can send the owner proof and request an unban.</p><button class="btn primary" onclick="showBanAppeal('${esc(username)}')">📨 Request Unban</button>`);
+  if(!permanent){
+    const tick=()=>{const left=Math.max(0,Number(until)-Date.now());if(left<=0){clearInterval(window.banTimer);window.banTimer=null;closeModal();$('authMsg').textContent='Your ban has expired. You can log in again.';return}const sec=Math.ceil(left/1000),h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),ss=sec%60;$('banCountdown').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`};tick();window.banTimer=setInterval(tick,250)
+  }
+}
+function showBanAppeal(username){
+  modal(`<h2>📨 Request an Unban</h2><p class="muted">Explain why you believe you are innocent. The owner can review your proof.</p><input id="appealUsername" class="field" value="${esc(username||'')}" placeholder="Username"><textarea id="appealMessage" class="field" rows="6" maxlength="2000" placeholder="Explain what happened and why the ban should be removed."></textarea><label style="display:block;margin-top:10px">Proof screenshot (optional) <input id="appealProof" class="field" type="file" accept="image/png,image/jpeg,image/webp"></label><div id="appealPreview" style="margin-top:8px"></div><button class="btn primary" onclick="submitBanAppeal()">Send to Owner</button>`);
+  const input=$('appealProof');
+  if(input)input.onchange=()=>{const f=input.files?.[0];if(!f)return;$('appealPreview').innerHTML=f.size>8*1024*1024?'<div class="muted">Proof must be under 8 MB.</div>':'<div class="muted">Proof attached.</div>'}
+}
+async function submitBanAppeal(){
+  const username=$('appealUsername')?.value.trim(),message=$('appealMessage')?.value.trim(),input=$('appealProof'),f=input?.files?.[0];
+  if(!username||!message)return toast('Enter your username and explain your case.');
+  let proof='';
+  if(f){if(f.size>8*1024*1024)return toast('Proof must be under 8 MB.');proof=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=reject;r.readAsDataURL(f)})}
+  const r=await fetch('/api/ban-appeal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,message,proof})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)return toast(d.error||'Could not send appeal.');
+  closeModal();toast('Your unban request was sent to the owner.');
+}
 async function ownerPoints(){const r=await fetch('/api/owner/points',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({username:$('opUser').value,amount:Number($('opAmount').value)})});const d=await r.json();toast(d.message||d.error);loadOwnerAccounts()}
 async function loadOwnerMessages(){const r=await fetch('/api/owner/messages',{headers:{Authorization:'Bearer '+token}});if(!r.ok)return;const d=await r.json();$('ownerContent').innerHTML=d.messages.map(m=>`<div class="ownerItem" style="margin:6px 0"><div><b>${esc(m.name)}</b> <span class="time">${esc(m.time)}</span></div><div class="text">${esc(m.text||'[attachment]')}</div><div style="margin-top:6px"><button class="btn" onclick="ownerEdit('${esc(m.id)}')">Edit</button> <button class="btn danger" onclick="ownerDelete('${esc(m.id)}')">Delete</button> <button class="btn" onclick="ownerPin('${esc(m.id)}')">📌 ${m.pinned?'Unpin':'Pin'}</button></div></div>`).join('')||'<p class="muted">No messages yet.</p>'}
 async function ownerEdit(id){return staffEdit(id)}; async function legacyOwnerEdit(id){const text=prompt('New message text:');if(text===null)return;const r=await fetch('/api/owner/edit-message',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id,text})});const d=await r.json();toast(d.error||'Message edited.');sync();if($('ownerContent'))loadOwnerMessages()}
@@ -419,20 +441,92 @@ async function showReportMailbox(){
   const d=await r.json().catch(()=>({}));
   if(!r.ok)return toast(d.error||'Could not load reports.');
   const reports=d.reports||[];
-  modal(`<h2>📬 Report Mailbox</h2><p class="muted">Only the owner, co-owners, and admins can see reports.</p><div id="reportMailboxList">${reports.map(reportCard).join('')||'<p class="muted">No reports yet.</p>'}</div>`);
+  modal(`<h2>📬 Report Mailbox</h2><p class="muted">New reports must be claimed and decided. A review lock expires after 24 hours if the reviewer does not decide.</p><div id="reportMailboxList">${reports.map(reportCard).join('')||'<p class="muted">No reports yet.</p>'}</div>`);
 }
 function reportCard(r){
   const date=r.createdAt?new Date(r.createdAt).toLocaleString():'';
-  return `<div class="reportCard ${r.status==='new'?'new':''}"><div><b>Reported: @${esc(r.reportedUsername)}</b> <span class="time">${esc(r.status||'new')}</span></div><div class="reportMeta">Submitted by @${esc(r.reporterUsername)} · ${esc(date)}</div><div class="reportReason">${esc(r.reason)}</div><img class="reportScreenshot" src="${esc(r.screenshot)}" alt="Report screenshot"><div style="display:flex;gap:7px;margin-top:9px"><button class="btn" onclick="setReportStatus('${esc(r.id)}','reviewed')">Mark reviewed</button><button class="btn primary" onclick="setReportStatus('${esc(r.id)}','resolved')">Resolve</button></div></div>`;
+  const mine=r.reviewedBy===account.username&&r.status==='new';
+  const busy=r.reviewedBy&&r.reviewedBy!==account.username&&r.status==='new';
+  const state=r.status==='new'?(busy?`Being reviewed by @${esc(r.reviewedBy)}`:(mine?'You are reviewing this':'New')):(r.decision==='ban'?'Banned':'Let go');
+  const action=busy?`<button class="btn" disabled>Already being reviewed</button>`:mine?`<button class="btn primary" onclick="openReportReview('${esc(r.id)}')">Continue review</button>`:`<button class="btn primary" onclick="claimReport('${esc(r.id)}')">Review</button>`;
+  return `<div class="reportCard ${r.status==='new'?'new':''}"><div><b>Reported: @${esc(r.reportedUsername)}</b> <span class="time">${esc(state)}</span></div><div class="reportMeta">Submitted by @${esc(r.reporterUsername)} · ${esc(date)}</div><div class="reportReason">${esc(r.reason)}</div><img class="reportScreenshot" src="${esc(r.screenshot)}" alt="Report screenshot"><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px">${r.status==='new'?action:`<span class="muted">Decision by @${esc(r.decidedBy||'staff')}</span>`}</div></div>`;
 }
-async function setReportStatus(id,status){
-  const r=await fetch('/api/reports/status',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id,status})});
+async function claimReport(id){
+  const r=await fetch('/api/reports/claim',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id})});
   const d=await r.json().catch(()=>({}));
-  if(!r.ok)return toast(d.error||'Could not update report.');
-  showReportMailbox();
+  if(!r.ok)return toast(d.error||'Could not claim this report.');
+  openReportReview(d.report);
 }
-function modal(content){if(dmTimer){clearInterval(dmTimer);dmTimer=null}$('modalRoot').innerHTML=`<div class="modalWrap" onclick="if(event.target.classList.contains('modalWrap'))closeModal()"><div class="modal">${content}</div></div>`}
-function closeModal(){if(dmTimer){clearInterval(dmTimer);dmTimer=null}$('modalRoot').innerHTML=''}
+async function openReportReview(report){
+  const isOwner=!!account.isOwner;
+  const options=`<option value="10">10 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option><option value="360">6 hours</option><option value="1440">1 day</option><option value="4320">3 days</option><option value="7200">5 days</option><option value="-1">Custom</option>`;
+  modal(`<h2>🛡️ Reviewing @${esc(report.reportedUsername)}</h2><p class="muted">You are the reviewer. This page cannot be closed until you choose <b>Ban</b> or <b>Let Go</b>. If you do not decide within 24 hours, another staff member can take the report.</p><div class="ownerItem"><div class="avatar" style="width:70px;height:70px">${esc(initials(report.reportedName||report.reportedUsername))}</div><h3>${esc(report.reportedName||report.reportedUsername)}</h3><div class="muted">@${esc(report.reportedUsername)}</div><p>${esc(report.reason)}</p><img class="reportScreenshot" src="${esc(report.screenshot)}" alt="Report evidence"></div><div class="modalGrid"><div><h3>🚫 Ban</h3><div class="muted">${isOwner?'Owner: any duration or permanent.':'Admin/Co-Owner: up to 5 days.'}</div><select id="reviewBanDuration" class="field">${options}</select><input id="reviewBanCustom" class="field" type="number" min="1" placeholder="Custom minutes" style="display:none"><input id="reviewBanReason" class="field" maxlength="300" value="${esc(report.reason||'Rule violation')}" placeholder="Ban reason"><button class="btn danger" onclick="decideReport('${esc(report.id)}','ban')">Ban this player</button>${!isOwner?`<button class="btn" onclick="messageOwnerAboutReport('${esc(report.id)}')">Message Owner for longer ban</button>`:''}</div><div><h3>✅ Let Go</h3><p class="muted">The report is innocent. You may also ban the person who made the report if it was false or abusive.</p><label class="check"><input id="banReporterCheck" type="checkbox" onchange="$('reporterBanBox').style.display=this.checked?'block':'none'"> Ban the reporter too</label><div id="reporterBanBox" style="display:none"><select id="reporterBanDuration" class="field">${options}</select><input id="reporterBanCustom" class="field" type="number" min="1" placeholder="Custom minutes" style="display:none"></div><button class="btn primary" onclick="decideReport('${esc(report.id)}','letgo')">Let Go</button></div></div>`,true);
+  const sel=$('reviewBanDuration');if(sel)sel.onchange=()=>{$('reviewBanCustom').style.display=sel.value==='-1'?'block':'none'};
+  const rsel=$('reporterBanDuration');if(rsel)rsel.onchange=()=>{$('reporterBanCustom').style.display=rsel.value==='-1'?'block':'none'};
+}
+async function decideReport(id,decision){
+  let body={id,decision};
+  if(decision==='ban'){
+    const sel=$('reviewBanDuration');let minutes=Number(sel?.value||10);
+    if(minutes===-1)minutes=Number($('reviewBanCustom')?.value||0);
+    if(!Number.isFinite(minutes)||minutes<0)return toast('Choose a ban duration.');
+    body.minutes=minutes;body.reason=$('reviewBanReason')?.value.trim()||'Rule violation';
+  }else{
+    const check=$('banReporterCheck')?.checked;
+    body.banReporter=!!check;
+    if(check){
+      const sel=$('reporterBanDuration');let minutes=Number(sel?.value||10);
+      if(minutes===-1)minutes=Number($('reporterBanCustom')?.value||0);
+      if(!Number.isFinite(minutes)||minutes<0)return toast('Choose a reporter ban duration.');
+      body.reporterMinutes=minutes;
+    }
+  }
+  const r=await fetch('/api/reports/decision',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify(body)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)return toast(d.error||'Could not decide this report.');
+  closeModal(true);toast(decision==='ban'?'Player banned.':'Report marked Let Go.');showReportMailbox();
+}
+async function messageOwnerAboutReport(id){
+  const message=prompt('Tell the owner why you think this ban should be longer:','This violation may need a longer ban because...');
+  if(message===null)return;
+  const r=await fetch('/api/reports/message-owner',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({id,message})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)return toast(d.error||'Could not message the owner.');
+  toast('Message sent to the owner.');
+}
+async function showOwnerMailbox(){
+  if(!account?.isOwner)return toast('Owner access only.');
+  const r=await fetch('/api/owner/inbox',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)return toast(d.error||'Could not load owner mailbox.');
+  const reqs=(d.requests||[]).filter(x=>x.status==='new');
+  const appeals=(d.appeals||[]).filter(x=>x.status==='new');
+  modal(`<h2>📨 Owner Mailbox</h2><h3>Longer-ban requests</h3><div>${reqs.map(ownerRequestCard).join('')||'<p class="muted">No longer-ban requests.</p>'}</div><h3>Ban appeals</h3><div>${appeals.map(ownerAppealCard).join('')||'<p class="muted">No ban appeals.</p>'}</div>`);
+}
+function ownerRequestCard(x){
+  return `<div class="reportCard new"><b>Longer ban request for @${esc(x.reportedUsername)}</b><div class="reportMeta">From @${esc(x.from)} · ${esc(x.createdAt?new Date(x.createdAt).toLocaleString():'')}</div><div class="reportReason">${esc(x.reason)}</div><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px"><button class="btn primary" onclick="ownerHandleRequest('${esc(x.id)}')">Open & Ban</button></div></div>`;
+}
+function ownerAppealCard(x){
+  return `<div class="reportCard new"><b>Unban request from @${esc(x.username)}</b><div class="reportMeta">${esc(x.createdAt?new Date(x.createdAt).toLocaleString():'')}</div><div class="reportReason">${esc(x.message)}</div>${x.proof?`<img class="reportScreenshot" src="${esc(x.proof)}" alt="Appeal proof">`:''}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px"><button class="btn primary" onclick="ownerAppealDecision('${esc(x.id)}','unban')">Unban</button><button class="btn danger" onclick="ownerAppealDecision('${esc(x.id)}','deny')">Deny</button></div></div>`;
+}
+async function ownerHandleRequest(requestId){
+  const duration=prompt('Owner ban duration in minutes. Enter 0 for permanent:','0');
+  if(duration===null)return;
+  const minutes=Number(duration);
+  if(!Number.isFinite(minutes)||minutes<0)return toast('Enter 0 or a positive number.');
+  const r=await fetch('/api/owner/inbox/decision',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({type:'request',id:requestId,decision:'ban',minutes})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)return toast(d.error||'Could not apply the ban.');
+  toast('Owner ban applied.');showOwnerMailbox();
+}
+async function ownerAppealDecision(id,decision){
+  const r=await fetch('/api/owner/inbox/decision',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({type:'appeal',id,decision})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)return toast(d.error||'Could not update appeal.');
+  toast(decision==='unban'?'Player unbanned.':'Appeal denied.');showOwnerMailbox();
+}
+function modal(content,locked=false){if(dmTimer){clearInterval(dmTimer);dmTimer=null}window.modalLocked=!!locked;$('modalRoot').innerHTML=`<div class="modalWrap ${locked?'lockedModal':''}" onclick="if(!window.modalLocked&&event.target.classList.contains('modalWrap'))closeModal()"><div class="modal">${content}</div></div>`}
+function closeModal(force=false){if(window.modalLocked&&!force)return;if(dmTimer){clearInterval(dmTimer);dmTimer=null}window.modalLocked=false;$('modalRoot').innerHTML=''}
 function toast(text){const x=document.createElement('div');x.className='toast';x.textContent=text;document.body.appendChild(x);setTimeout(()=>x.remove(),2400)}
 async function logout(){try{await fetch('/api/logout',{method:'POST',headers:{Authorization:'Bearer '+token}})}catch(e){}sessionStore().removeItem(TOKEN_KEY);localStorage.removeItem(TOKEN_KEY);token='';account=null;if(poll)clearInterval(poll);if(rewardTimer)clearInterval(rewardTimer);$('app').classList.add('hidden');$('auth').classList.remove('hidden');setAuthMode('login');$('authName').value='';$('authPass').value='';$('authMsg').textContent='You are fully logged out.';renderQuick()}
 async function boot(){
