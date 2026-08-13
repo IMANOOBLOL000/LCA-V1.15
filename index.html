@@ -751,7 +751,7 @@ applyTheme();
 boot();
 $('messageInput').addEventListener('input',onMessageInput);
 document.addEventListener('click',e=>{if(!e.target.closest('#mentionSuggestions')&&!e.target.closest('#messageInput'))$('mentionSuggestions').style.display='none'});
-setInterval(pollTyping,1500);setInterval(refreshTimeCurrency,60000);
+setInterval(pollTyping,1500);setInterval(refreshTimeCurrency,30000);
 
 async function ownerDeleteMailboxItem(type,id){
   if(!clientIsOwner())return toast('Owner only.');
@@ -764,6 +764,18 @@ async function ownerDeleteMailboxItem(type,id){
   if(typeof ownerPanel==='function') ownerPanel();
   if(typeof staffPanel==='function') staffPanel();
 }
+
+(function(){
+  if(window.__lcaPassiveHeartbeat)return;
+  window.__lcaPassiveHeartbeat=true;
+  setInterval(function(){
+    try{
+      if(token && account && document.visibilityState==='visible'){
+        fetch('/api/activity',{method:'POST',headers:{Authorization:'Bearer '+token}}).catch(()=>{});
+      }
+    }catch(e){}
+  },30000);
+})();
 </script>
 <script id="lca-features-clean-ui">
 (function(){
