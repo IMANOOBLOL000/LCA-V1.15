@@ -457,7 +457,7 @@ app.post('/api/owner/pin',ownerControl,(req,res)=>{const db=req.db,id=String(req
 app.post('/api/owner/edit-message',ownerControl,(req,res)=>{const db=req.db,id=String(req.body?.id||''),text=String(req.body?.text||'').slice(0,4000);for(const a of Object.values(db.accounts)){const m=(a.messages||[]).find(x=>x.id===id);if(m){m.text=text;m.originalText='';m.userEdited=false;m.editedBy=OWNER_USERNAME;m.editedAt=new Date().toISOString();save(db);return res.json({ok:true})}}res.status(404).json({error:'Message not found.'})});
 app.post('/api/owner/delete-message',ownerControl,(req,res)=>{const db=req.db,id=String(req.body?.id||'');for(const a of Object.values(db.accounts)){const before=a.messages.length;a.messages=a.messages.filter(x=>x.id!==id);if(a.messages.length!==before){save(db);return res.json({ok:true})}}res.status(404).json({error:'Message not found.'})});
 
-loadPersistent().then(()=>app.listen(PORT,()=>console.log('LCA online server listening on '+PORT));
+
 
 
 app.post('/api/owner/mailbox/delete',auth,(req,res)=>{
@@ -541,3 +541,7 @@ app.post('/api/owner/staff-abuse',(req,res)=>{
   db.ownerMailbox.push({id:Date.now().toString(36),type:'staff-abuse',staff:String(req.body?.staff||''),reason:String(req.body?.reason||''),from:req.account?.username||req.user?.username||'unknown',createdAt:Date.now()});
   save(db); res.json({ok:true});
 });
+
+loadPersistent()
+  .then(()=>app.listen(PORT,()=>console.log('LCA online server listening on '+PORT)))
+  .catch(e=>{console.error('LCA startup failed:',e);process.exit(1);});
