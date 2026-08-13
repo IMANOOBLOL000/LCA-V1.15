@@ -457,49 +457,7 @@ app.post('/api/owner/pin',ownerControl,(req,res)=>{const db=req.db,id=String(req
 app.post('/api/owner/edit-message',ownerControl,(req,res)=>{const db=req.db,id=String(req.body?.id||''),text=String(req.body?.text||'').slice(0,4000);for(const a of Object.values(db.accounts)){const m=(a.messages||[]).find(x=>x.id===id);if(m){m.text=text;m.originalText='';m.userEdited=false;m.editedBy=OWNER_USERNAME;m.editedAt=new Date().toISOString();save(db);return res.json({ok:true})}}res.status(404).json({error:'Message not found.'})});
 app.post('/api/owner/delete-message',ownerControl,(req,res)=>{const db=req.db,id=String(req.body?.id||'');for(const a of Object.values(db.accounts)){const before=a.messages.length;a.messages=a.messages.filter(x=>x.id!==id);if(a.messages.length!==before){save(db);return res.json({ok:true})}}res.status(404).json({error:'Message not found.'})});
 
-loadPersistent().then(()=>
-app.post('/api/owner/give-time',auth,ownerOnly,(req,res)=>{
-  const target=String(req.body?.username||'').trim().toLowerCase();
-  const amount=Number(req.body?.amount);
-  if(!target||!Number.isInteger(amount)||amount<1)return res.status(400).json({error:'Invalid username or amount.'});
-  if(amount>10000)return res.status(400).json({error:'Amount is too large.'});
-  const db=req.db, acc=Object.values(db.accounts||{}).find(a=>String(a.username||'').toLowerCase()===target);
-  if(!acc)return res.status(404).json({error:'User not found.'});
-  acc.time=Number(acc.time||0)+amount;
-  if(typeof req.save==='function')req.save();
-  else if(typeof saveDB==='function')saveDB(db);
-  res.json({ok:true,username:acc.username,amount,newBalance:acc.time});
-});
-
-
-app.post('/api/owner/give-diamonds',auth,ownerOnly,(req,res)=>{
-  const target=String(req.body?.username||'').trim().toLowerCase();
-  const amount=Number(req.body?.amount);
-  if(!target||!Number.isInteger(amount)||amount<1)return res.status(400).json({error:'Invalid username or amount.'});
-  if(amount>10000)return res.status(400).json({error:'Amount is too large.'});
-  const db=req.db, acc=Object.values(db.accounts||{}).find(a=>String(a.username||'').toLowerCase()===target);
-  if(!acc)return res.status(404).json({error:'User not found.'});
-  acc.diamonds=Number(acc.diamonds||0)+amount;
-  if(typeof req.save==='function')req.save();
-  else if(typeof saveDB==='function')saveDB(db);
-  res.json({ok:true,username:acc.username,amount,newBalance:acc.diamonds});
-});
-
-
-app.post('/api/owner/give-points',auth,ownerOnly,(req,res)=>{
-  const target=String(req.body?.username||'').trim().toLowerCase();
-  const amount=Number(req.body?.amount);
-  if(!target||!Number.isInteger(amount)||amount<1)return res.status(400).json({error:'Invalid username or amount.'});
-  if(amount>10000)return res.status(400).json({error:'Amount is too large.'});
-  const db=req.db, acc=Object.values(db.accounts||{}).find(a=>String(a.username||'').toLowerCase()===target);
-  if(!acc)return res.status(404).json({error:'User not found.'});
-  acc.points=Number(acc.points||0)+amount;
-  if(typeof req.save==='function')req.save();
-  else if(typeof saveDB==='function')saveDB(db);
-  res.json({ok:true,username:acc.username,amount,newBalance:acc.points});
-});
-
-app.listen(PORT,()=>console.log('LCA online server listening on '+PORT))).catch(e=>{console.error(e);process.exit(1)});
+loadPersistent().then(()=>app.listen(PORT,()=>console.log('LCA online server listening on '+PORT));
 
 
 app.post('/api/owner/mailbox/delete',auth,(req,res)=>{
