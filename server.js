@@ -175,9 +175,9 @@ const TIME_MACHINE_TIERS=[
   {id:'tm10',cost:25000,multiplier:3.25,label:'Time Machine X',reward:'3.25× points'}
 ];
 app.post('/api/diamonds/exchange',auth,(req,res)=>{const db=req.db,a=req.account,direction=String(req.body?.direction||'pointsToDiamonds');const amount=Math.floor(Number(req.body?.amount||0));if(!Number.isFinite(amount)||amount<=0)return res.status(400).json({error:'Enter a positive amount.'});if(direction==='pointsToDiamonds'){if(amount%100!==0)return res.status(400).json({error:'Points-to-diamond exchanges must use multiples of 100 points.'});if((a.points||0)<amount)return res.status(400).json({error:'Not enough points.'});const dia=amount/100;a.points-=amount;a.diamonds=(a.diamonds||0)+dia;save(db);return res.json({ok:true,direction,points:a.points,diamonds:a.diamonds,changedPoints:-amount,changedDiamonds:dia})}if(direction==='diamondsToPoints'){const dia=amount;if((a.diamonds||0)<dia)return res.status(400).json({error:`You need ${dia} diamonds.`});const pts=dia*100;a.diamonds-=dia;a.points=(a.points||0)+pts;save(db);return res.json({ok:true,direction,points:a.points,diamonds:a.diamonds,changedPoints:pts,changedDiamonds:-dia})}return res.status(400).json({error:'Unknown exchange direction.'})});
-app.post('/api/owner/give-time',ownerOnly,(req,res)=>{const db=req.db,target=String(req.body?.username||'').trim().toLowerCase(),amount=Math.floor(Number(req.body?.amount||0));if(!db.accounts[target])return res.status(404).json({error:'Player not found.'});if(!Number.isInteger(amount)||amount<1||amount>10000)return res.status(400).json({error:'Time amount must be 1–10,000.'});db.accounts[target].timeBalance=(db.accounts[target].timeBalance||0)+amount;db.accounts[target].timeLastAt=Date.now();save(db);res.json({ok:true,timeBalance:db.accounts[target].timeBalance})});
-app.post('/api/owner/give-diamonds',ownerOnly,(req,res)=>{const db=req.db,target=String(req.body?.username||'').trim().toLowerCase(),amount=Math.floor(Number(req.body?.amount||0));if(!db.accounts[target])return res.status(404).json({error:'Player not found.'});if(!Number.isInteger(amount)||amount<1||amount>10000)return res.status(400).json({error:'Diamond amount must be 1–10,000.'});db.accounts[target].diamonds=(db.accounts[target].diamonds||0)+amount;save(db);res.json({ok:true,diamonds:db.accounts[target].diamonds})});
-app.post('/api/owner/give-points',ownerOnly,(req,res)=>{const db=req.db,target=String(req.body?.username||'').trim().toLowerCase(),amount=Math.floor(Number(req.body?.amount||0));if(!db.accounts[target])return res.status(404).json({error:'Player not found.'});if(!Number.isInteger(amount)||amount<1||amount>100000)return res.status(400).json({error:'Point amount must be 1–100,000.'});db.accounts[target].points=(db.accounts[target].points||0)+amount;save(db);res.json({ok:true,points:db.accounts[target].points})});
+app.post('/api/owner/give-time',ownerOnly,(req,res)=>{const db=req.db,target=String(req.body?.username||'').trim().toLowerCase(),amount=Math.floor(Number(req.body?.amount||0));if(!db.accounts[target])return res.status(404).json({error:'Player not found.'});if(!Number.isInteger(amount)||amount<1)return res.status(400).json({error:'Time amount must be a positive whole number.'});db.accounts[target].timeBalance=(db.accounts[target].timeBalance||0)+amount;db.accounts[target].timeLastAt=Date.now();save(db);res.json({ok:true,timeBalance:db.accounts[target].timeBalance})});
+app.post('/api/owner/give-diamonds',ownerOnly,(req,res)=>{const db=req.db,target=String(req.body?.username||'').trim().toLowerCase(),amount=Math.floor(Number(req.body?.amount||0));if(!db.accounts[target])return res.status(404).json({error:'Player not found.'});if(!Number.isInteger(amount)||amount<1)return res.status(400).json({error:'Diamond amount must be a positive whole number.'});db.accounts[target].diamonds=(db.accounts[target].diamonds||0)+amount;save(db);res.json({ok:true,diamonds:db.accounts[target].diamonds})});
+app.post('/api/owner/give-points',ownerOnly,(req,res)=>{const db=req.db,target=String(req.body?.username||'').trim().toLowerCase(),amount=Math.floor(Number(req.body?.amount||0));if(!db.accounts[target])return res.status(404).json({error:'Player not found.'});if(!Number.isInteger(amount)||amount<1)return res.status(400).json({error:'Point amount must be a positive whole number.'});db.accounts[target].points=(db.accounts[target].points||0)+amount;save(db);res.json({ok:true,points:db.accounts[target].points})});
 app.post('/api/owner/diamonds',ownerControl,(req,res)=>{const db=req.db,grantor=req.account,target=String(req.body?.target||grantor.username).toLowerCase(),amount=Math.floor(Number(req.body?.amount||0));if(!db.accounts[target])return res.status(404).json({error:'Player not found.'});if(!Number.isFinite(amount)||amount<=0)return res.status(400).json({error:'Enter a positive diamond amount.'});if(grantor.username!==OWNER_USERNAME){if(grantor.role!=='co-owner')return res.status(403).json({error:'Only the owner can grant diamonds.'});if(amount>Number(grantor.coOwnerDiamondGrantRemaining||0))return res.status(400).json({error:`Co-Owner diamond grant limit remaining: ${grantor.coOwnerDiamondGrantRemaining||0}.`});grantor.coOwnerDiamondGrantRemaining-=amount;}db.accounts[target].diamonds=(db.accounts[target].diamonds||0)+amount;save(db);res.json({ok:true,target,amount,diamonds:db.accounts[target].diamonds})});
 app.get('/api/time-machine/status',auth,(req,res)=>{const a=req.account;res.json({pending:a.timeMachine||null,multiplier:Number(a.pointsMultiplierUntil||0)>Date.now()?Number(a.pointsMultiplier||1):1,multiplierUntil:Number(a.pointsMultiplierUntil||0)})});
 app.get('/api/time-machine/tiers',auth,(req,res)=>res.json({tiers:TIME_MACHINE_TIERS}));
@@ -546,21 +546,22 @@ app.post('/api/owner/staff-abuse',(req,res)=>{
 });
 
 loadPersistent()
-  .then(()=>
-app.post('/api/owner/give-owner-token',auth,ownerOnly,(req,res)=>{
-  const target=String(req.body?.username||'').trim().toLowerCase();
-  const amount=Number(req.body?.amount);
-  if(!target||!Number.isFinite(amount)||amount<1||!Number.isInteger(amount))
-    return res.status(400).json({error:'Invalid username or amount.'});
+  .then(()=>app.listen(PORT,()=>console.log('LCA online server listening on '+PORT)))
+  .catch(e=>{console.error('LCA startup failed:',e);process.exit(1);});
+
+app.post('/api/owner/give-owner-token',ownerOnly,(req,res)=>{
   const db=req.db;
-  const acc=Object.values(db.accounts||{}).find(
-    a=>String(a.username||'').trim().toLowerCase()===target
-  );
-  if(!acc)return res.status(404).json({error:'User not found.'});
+  const target=String(req.body?.username||'').trim().toLowerCase();
+  const amount=Math.floor(Number(req.body?.amount||0));
+  if(!target)return res.status(400).json({error:'Username is required.'});
+  if(!Number.isInteger(amount)||amount<1)return res.status(400).json({error:'Owner Token amount must be a positive whole number.'});
+  const acc=db.accounts[target];
+  if(!acc)return res.status(404).json({error:'Player not found.'});
   acc.ownerTokens=Number(acc.ownerTokens||0)+amount;
   save(db);
-  res.json({ok:true,username:acc.username,amount,newBalance:acc.ownerTokens});
+  res.json({ok:true,ownerTokens:acc.ownerTokens,username:acc.username});
 });
 
-app.listen(PORT,()=>console.log('LCA online server listening on '+PORT)))
+loadPersistent()
+  .then(()=>app.listen(PORT,()=>console.log('LCA online server listening on '+PORT)))
   .catch(e=>{console.error('LCA startup failed:',e);process.exit(1);});
