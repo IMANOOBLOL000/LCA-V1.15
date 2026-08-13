@@ -139,7 +139,7 @@ body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none
 </section>
 
 <section id="app" class="hidden">
-<header class="top"><div class="brand">LCA</div><div class="muted">Lucien's Chatting App</div><div class="topSpacer"></div><div class="points" id="points">0 pts</div><div class="points" id="diamonds">0 💎</div><div class="points" id="ownerTokens">0 🪙</div><div class="points" id="timeCurrency">0 ⏱️</div><button class="profileBtn" onclick="toggleMenu()"><span class="avatar" id="topAvatar">L</span><b id="topName">User</b>⌄</button></header>
+<header class="top"><div class="brand">LCA</div><div class="muted">Lucien's Chatting App</div><div class="topSpacer"></div><div class="points" id="points">0 pts</div> <span id="timeBalance" title="1 Time per active minute">0 ⏱️</span><div class="points" id="diamonds">0 💎</div><div class="points" id="ownerTokens">0 🪙</div><div class="points" id="timeCurrency">0 ⏱️</div><button class="profileBtn" onclick="toggleMenu()"><span class="avatar" id="topAvatar">L</span><b id="topName">User</b>⌄</button></header>
 <aside class="side">
 <h3>Servers</h3><div id="servers"></div>
 <div class="sideCreateRow"><button class="btn full" onclick="createServer()">＋ Create Server</button><button class="btn full" onclick="createVoiceServer()">🎙️ Create Voice Server</button></div>
@@ -379,9 +379,10 @@ function normalizedRole(){
 function clientIsOwner(){return normalizedRole()==='owner'}
 function clientIsCoOwner(){return normalizedRole()==='co-owner'}
 function clientCanOwnerPanel(){return clientIsOwner()||clientIsCoOwner()||Number(account?.ownerPanelTrialRemainingMs||0)>0}
-function render(){refreshTimeCurrency();if(!account)return;renderPoints();renderTMTimer();$('mailboxButton').classList.toggle('hidden',!(clientIsOwner()||clientIsCoOwner()||account.role==='admin'));$('ownerMailboxButton').classList.toggle('hidden',!clientIsOwner());$('topName').textContent=account.name;$('menuName').textContent=account.name;$('topAvatar').innerHTML=avatarHTML(account);$('menuAvatar').innerHTML=avatarHTML(account);$('ownerButton').classList.toggle('hidden',!clientCanOwnerPanel());$('ownerShopButton').classList.remove('hidden');$('modButton').classList.toggle('hidden',!['mod','admin','server-admin'].includes(normalizedRole()));$('modButton').textContent=normalizedRole()==='server-admin'?'🕐 Server Admin Panel':normalizedRole()==='admin'?'🧰 Admin Panel':'🛡️ Staff Panel';renderServers();renderMessages();renderMembers();applySafety();applyBackground();window.dispatchEvent(new Event('lca:rendered'))}
+async function markActivityNow(){if(!token)return;try{await fetch('/api/activity',{method:'POST',headers:{Authorization:'Bearer '+token}})}catch(e){}}
+function render(){if(token)markActivityNow();refreshTimeCurrency();if(!account)return;renderPoints();renderTMTimer();$('mailboxButton').classList.toggle('hidden',!(clientIsOwner()||clientIsCoOwner()||account.role==='admin'));$('ownerMailboxButton').classList.toggle('hidden',!clientIsOwner());$('topName').textContent=account.name;$('menuName').textContent=account.name;$('topAvatar').innerHTML=avatarHTML(account);$('menuAvatar').innerHTML=avatarHTML(account);$('ownerButton').classList.toggle('hidden',!clientCanOwnerPanel());$('ownerShopButton').classList.remove('hidden');$('modButton').classList.toggle('hidden',!['mod','admin','server-admin'].includes(normalizedRole()));$('modButton').textContent=normalizedRole()==='server-admin'?'🕐 Server Admin Panel':normalizedRole()==='admin'?'🧰 Admin Panel':'🛡️ Staff Panel';renderServers();renderMessages();renderMembers();applySafety();applyBackground();window.dispatchEvent(new Event('lca:rendered'))}
 function avatarHTML(a){return a.avatar?`<img src="${a.avatar}" alt="">`:esc(initials(a.name))}
-function renderPoints(){$('points').textContent=`${account?.points||0} pts`;if($('diamonds'))$('diamonds').textContent=`${account?.diamonds||0} 💎`}
+function renderPoints(){$('points').textContent=`${account?.points||0} pts`;if($('diamonds'))$('diamonds').textContent=`${account?.diamonds||0} 💎`;if($('ownerTokens'))$('ownerTokens').textContent=`${account?.ownerTokens||0} 🪙`;if($('timeBalance'))$('timeBalance').textContent=`${account?.timeBalance||0} ⏱️`}
 function renderServers(){const list=account.servers||[];$('servers').innerHTML=list.map(s=>`<div class="server ${s.id===serverId?'active':''}" onclick="selectServer('${esc(s.id)}')"><span class="serverIcon">${s.isUpdateLog?'📜':(s.voiceOnly?'🎙️':(s.icon?'🖼️':(s.private?'🔒':'💬')))}</span><span class="serverName">${esc(s.name)}</span></div>`).join('')}
 function selectServer(id){serverId=id;render();}
 function currentServer(){return (account.servers||[]).find(s=>s.id===serverId)||account.servers?.[0]}
@@ -882,7 +883,7 @@ async function ownerDeleteMailboxItem(type,id){
       <div class="currencyHelpGrid">
         <div class="currencyHelpCard">
           <b>⏱️ Time</b><button id="currencyHelpBtn" title="How currencies work" onclick="openCurrencyHelp()">?</button>
-          You earn <strong>1 Time per minute</strong> while grinding/being active.
+          You earn <strong>1 Time per active minute</strong> while grinding/being active.
           Time is the main way to create the premium currencies.
         </div>
         <div class="currencyHelpCard">
@@ -892,7 +893,7 @@ async function ownerDeleteMailboxItem(type,id){
         </div>
         <div class="currencyHelpCard">
           <b>🪙 Owner Tokens</b>
-          <strong>10 Time = 1 Owner Token.</strong>
+          <strong>10 Time = 1 Owner Token.</strong> Grind Time first, then exchange it.
           Owner Tokens are premium currency for the Owners Shop and powerful unlocks.
           They can <strong>only</strong> be obtained by converting Time.
         </div>
