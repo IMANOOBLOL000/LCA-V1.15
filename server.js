@@ -547,23 +547,29 @@ app.post('/api/owner/staff-abuse',(req,res)=>{
 });
 
 
-async function startServer(attempt=0){
-  try{
-    const server=await new Promise((resolve,reject)=>{
-      const srv=app.listen(PORT,'0.0.0.0',()=>resolve(srv));
-      srv.once('error',reject);
-    });
-    console.log('LCA online server listening on '+PORT);
-    return server;
-  }catch(e){
-    if(e && e.code==='EADDRINUSE' && attempt<12){
-      console.warn('Port '+PORT+' is temporarily busy; retrying in 2 seconds ('+(attempt+1)+'/12).');
-      await new Promise(r=>setTimeout(r,2000));
-      return startServer(attempt+1);
-    }
-    throw e;
-  }
+app.get('/health',(req,res)=>res.status(200).json({ok:true,service:'LCA'}));
+
+let httpServer=null;
+async function startServer(){
+  if(httpServer) return httpServer;
+  httpServer=await new Promise((resolve,reject)=>{
+    const srv=app.listen({port:Number(PORT),host:'0.0.0.0',reusePort:true},()=>resolve(srv));
+    srv.once('error',reject);
+  });
+  httpServer.keepAliveTimeout=120000;
+  httpServer.headersTimeout=125000;
+  console.log('LCA online server listening on 0.0.0.0:'+PORT);
+  return httpServer;
 }
+
+process.on('SIGTERM',()=>{
+  if(httpServer) httpServer.close(()=>process.exit(0));
+  else process.exit(0);
+});
+process.on('SIGINT',()=>{
+  if(httpServer) httpServer.close(()=>process.exit(0));
+  else process.exit(0);
+});
 
 loadPersistent()
   .then(()=>startServer())
