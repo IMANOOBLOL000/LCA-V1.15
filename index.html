@@ -919,5 +919,70 @@ async function ownerDeleteMailboxItem(type,id){
 </script>
 
 
+
+<script id="lca-owner-grant-fix">
+(function(){
+  async function ownerGrant(kind){
+    const isOwner=!!window.account?.isOwner ||
+      String(window.account?.role||'').toLowerCase()==='owner';
+    if(!isOwner)return toast('Only the Owner can use this.');
+    const username=prompt('Username to give '+kind+':');
+    if(!username || !username.trim()) return;
+    const amount=Number(prompt('Amount of '+kind+':'));
+    if(!Number.isFinite(amount) || amount<1 || !Number.isInteger(amount))
+      return toast('Enter a whole number greater than 0.');
+    const endpoint={
+      Time:'/api/owner/give-time',
+      Diamonds:'/api/owner/give-diamonds',
+      Points:'/api/owner/give-points',
+      'Owner Token':'/api/owner/give-owner-token'
+    }[kind];
+    const r=await fetch(endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:'Bearer '+window.token},
+      body:JSON.stringify({username:username.trim(),amount})
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||('Could not give '+kind+'.'));
+    if(typeof sync==='function')await sync();
+    toast('✅ Gave '+amount+' '+kind+' to '+username.trim()+'.');
+  }
+
+  window.ownerGiveTime=()=>ownerGrant('Time');
+  window.ownerGiveDiamonds=()=>ownerGrant('Diamonds');
+  window.ownerGivePoints=()=>ownerGrant('Points');
+  window.ownerGiveOwnerToken=()=>ownerGrant('Owner Token');
+
+  function addButtons(){
+    const owner=!!window.account?.isOwner ||
+      String(window.account?.role||'').toLowerCase()==='owner';
+    if(!owner || document.getElementById('lcaOwnerCurrencyButtons')) return;
+
+    const timeBtns=[...document.querySelectorAll('button')].filter(
+      b=>/give\s*time/i.test(b.textContent||'')
+    );
+    const anchor=timeBtns[0];
+    if(!anchor || !anchor.parentElement)return;
+
+    const box=document.createElement('div');
+    box.id='lcaOwnerCurrencyButtons';
+    box.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;position:relative;z-index:100';
+    box.innerHTML=
+      '<button type="button" onclick="ownerGiveTime()">⏱️ Give Time</button>'+
+      '<button type="button" onclick="ownerGiveDiamonds()">💎 Give Diamonds</button>'+
+      '<button type="button" onclick="ownerGivePoints()">⭐ Give Points</button>'+
+      '<button type="button" onclick="ownerGiveOwnerToken()">🪙 Give Owner Token</button>';
+    anchor.parentElement.appendChild(box);
+  }
+
+  const observer=new MutationObserver(addButtons);
+  function start(){
+    if(document.body)observer.observe(document.body,{childList:true,subtree:true});
+    setTimeout(addButtons,300);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);
+  else start();
+})();
+</script>
 </body>
 </html>

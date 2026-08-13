@@ -546,5 +546,21 @@ app.post('/api/owner/staff-abuse',(req,res)=>{
 });
 
 loadPersistent()
-  .then(()=>app.listen(PORT,()=>console.log('LCA online server listening on '+PORT)))
+  .then(()=>
+app.post('/api/owner/give-owner-token',auth,ownerOnly,(req,res)=>{
+  const target=String(req.body?.username||'').trim().toLowerCase();
+  const amount=Number(req.body?.amount);
+  if(!target||!Number.isFinite(amount)||amount<1||!Number.isInteger(amount))
+    return res.status(400).json({error:'Invalid username or amount.'});
+  const db=req.db;
+  const acc=Object.values(db.accounts||{}).find(
+    a=>String(a.username||'').trim().toLowerCase()===target
+  );
+  if(!acc)return res.status(404).json({error:'User not found.'});
+  acc.ownerTokens=Number(acc.ownerTokens||0)+amount;
+  save(db);
+  res.json({ok:true,username:acc.username,amount,newBalance:acc.ownerTokens});
+});
+
+app.listen(PORT,()=>console.log('LCA online server listening on '+PORT)))
   .catch(e=>{console.error('LCA startup failed:',e);process.exit(1);});
