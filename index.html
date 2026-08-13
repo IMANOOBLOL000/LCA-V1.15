@@ -122,6 +122,11 @@ body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none
 .currencyHelpCard{border:1px solid #334b67;border-radius:12px;padding:11px;background:#101d2d}
 .currencyHelpCard b{display:block;margin-bottom:4px}
 </style>
+
+<style id="lca-owner-grant-css">
+#lcaOwnerGrantRow{position:relative;z-index:30;pointer-events:auto}
+#lcaOwnerGrantRow button{pointer-events:auto;cursor:pointer;position:relative;z-index:31}
+</style>
 </head>
 <body>
 <section id="auth">
@@ -595,7 +600,7 @@ function reportCard(r){
   const mine=r.reviewedBy===account.username&&r.status==='new';
   const busy=r.reviewedBy&&r.reviewedBy!==account.username&&r.status==='new';
   const state=r.status==='new'?(busy?`Being reviewed by @${esc(r.reviewedBy)}`:(mine?'You are reviewing this':'New')):(r.decision==='ban'?'Banned':'Let go');
-  const action=busy?`<button class="btn" disabled>Already being reviewed</button>`:mine?`<button class="btn primary" onclick="openReportReview('${esc(r.id)}')">Continue review</button>`:`<button class="btn primary" onclick="claimReport('${esc(r.id)}')">Review</button>`;
+  const action=busy?`<button class="btn">Already being reviewed</button>`:mine?`<button class="btn primary" onclick="openReportReview('${esc(r.id)}')">Continue review</button>`:`<button class="btn primary" onclick="claimReport('${esc(r.id)}')">Review</button>`;
   const deleteButton=r.status==='decided'?`<button class="btn danger" onclick="deleteReport('${esc(r.id)}')">Delete report</button>`:'';
   return `<div class="reportCard ${r.status==='new'?'new':''}"><div><b>Reported: @${esc(r.reportedUsername)}</b> <span class="time">${esc(state)}</span></div><div class="reportMeta">Submitted by @${esc(r.reporterUsername)} · ${esc(date)}</div><div class="reportReason">${esc(r.reason)}</div><img class="reportScreenshot" src="${esc(r.screenshot)}" alt="Report screenshot"><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px">${r.status==='new'?action:`<span class="muted">Decision by @${esc(r.decidedBy||'staff')}</span>${deleteButton}`}</div></div>`;
 }
@@ -915,6 +920,58 @@ async function ownerDeleteMailboxItem(type,id){
       <div id="ownersShopContent"></div>
     `);
   };
+})();
+</script>
+
+<script id="lca-owner-grant-tools">
+(function(){
+  function role(){
+    return String(account?.role||'').trim().toLowerCase().replace(/[_-]+/g,' ');
+  }
+  function owner(){
+    return !!account?.isOwner || role()==='owner';
+  }
+  async function grant(kind){
+    if(!owner()) return toast('Only the Owner can give currency.');
+    const username=prompt('Username to give '+kind+':');
+    if(!username||!username.trim()) return;
+    const raw=prompt('How many '+kind+'?');
+    if(raw===null)return;
+    const amount=Number(raw);
+    if(!Number.isInteger(amount)||amount<1)return toast('Enter a whole number greater than 0.');
+    const body={username:username.trim(),amount};
+    const r=await fetch('/api/owner/give-'+kind.toLowerCase(),{
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},
+      body:JSON.stringify(body)
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)return toast(d.error||'Could not give '+kind+'.');
+    await sync();
+    toast('✅ Gave '+amount+' '+kind+' to '+username.trim()+'.');
+  }
+  window.ownerGiveTime=()=>grant('Time');
+  window.ownerGiveDiamonds=()=>grant('Diamonds');
+  window.ownerGivePoints=()=>grant('Points');
+
+  function inject(){
+    if(!owner())return;
+    if(document.getElementById('lcaOwnerGrantRow'))return;
+    const buttons=[...document.querySelectorAll('button')];
+    const time=buttons.find(b=>/Give\s*Time/i.test(b.textContent||''));
+    if(!time)return;
+    const row=document.createElement('div');
+    row.id='lcaOwnerGrantRow';
+    row.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;';
+    row.innerHTML=
+      '<button type="button" class="btn" onclick="ownerGiveTime()">⏱️ Give Time</button>'+
+      '<button type="button" class="btn" onclick="ownerGiveDiamonds()">💎 Give Diamonds</button>'+
+      '<button type="button" class="btn" onclick="ownerGivePoints()">⭐ Give Points</button>';
+    time.parentElement.appendChild(row);
+  }
+  const mo=new MutationObserver(inject);
+  if(document.body)mo.observe(document.body,{childList:true,subtree:true});
+  setTimeout(inject,300);
 })();
 </script>
 </body>
