@@ -110,7 +110,19 @@ body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none
 .popupHead{display:flex;align-items:center;gap:10px;padding-right:42px}
 .popupHead h2{flex:1}
 </style>
-<style id="lca-poll-ui">.pollBox{margin-top:8px;padding:12px;border:1px solid #365274;border-radius:12px;background:#0d1a2a}.pollQuestion{font-weight:900;margin-bottom:8px}.pollAnswer{display:block;width:100%;text-align:left;margin:5px 0;padding:9px;border:1px solid #30445f;border-radius:9px;background:#122033;color:inherit;cursor:pointer}.pollAnswer:hover{background:#1a2d46}</style></head>
+<style id="lca-poll-ui">.pollBox{margin-top:8px;padding:12px;border:1px solid #365274;border-radius:12px;background:#0d1a2a}.pollQuestion{font-weight:900;margin-bottom:8px}.pollAnswer{display:block;width:100%;text-align:left;margin:5px 0;padding:9px;border:1px solid #30445f;border-radius:9px;background:#122033;color:inherit;cursor:pointer}.pollAnswer:hover{background:#1a2d46}</style>
+<style id="lca-currency-help-css">
+#currencyHelpBtn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;margin-left:6px;border-radius:50%;
+  border:1px solid #49627f;background:#16263b;color:inherit;
+  font-weight:800;cursor:pointer;vertical-align:middle;
+}
+.currencyHelpGrid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+.currencyHelpCard{border:1px solid #334b67;border-radius:12px;padding:11px;background:#101d2d}
+.currencyHelpCard b{display:block;margin-bottom:4px}
+</style>
+</head>
 <body>
 <section id="auth">
   <div class="authCard">
@@ -248,7 +260,7 @@ function showNewUserTutorial(username){
   const key='lca_tutorial_seen_v4_'+String(username||'').toLowerCase();
   if(localStorage.getItem(key))return;
   const pages=[
-    {title:'Welcome to LCA! 👋',text:'LCA is your place to chat, make friends, join servers, share files, and customize your profile. Here is a quick tour before you start.',cards:[
+    {title:'Welcome to LCA! 👋<p class="muted">Explore servers, chat, earn Time, and turn Time into Diamonds or Owner Tokens. Check the ? beside your currencies anytime to learn how everything works.</p>! 👋 👋',text:'LCA is your place to chat, make friends, join servers, share files, and customize your profile. Here is a quick tour before you start.',cards:[
       ['🏠 Servers','Choose a server from the left side. Each server has its own members and conversations.'],
       ['💬 Messages','Type in the message box and press Send. Your messages update automatically without needing to reload the page.'],
       ['👥 Friends','Add people as friends. Friend status helps you see who is online and enables private chatting.'],
@@ -847,5 +859,63 @@ async function ownerDeleteMailboxItem(type,id){
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',updateFeatureVisibility);else updateFeatureVisibility();
  window.addEventListener('lca:rendered',updateFeatureVisibility);
 })();
-</script></body>
+</script>
+<script id="lca-currency-help">
+(function(){
+  function currencyHelp(){
+    modal(`
+      <div class="popupHead"><h2>❓ How Currencies Work</h2></div>
+      <p class="muted">Here is what each currency does and how you earn it.</p>
+      <div class="currencyHelpGrid">
+        <div class="currencyHelpCard">
+          <b>⏱️ Time</b><button id="currencyHelpBtn" title="How currencies work" onclick="openCurrencyHelp()">?</button>
+          You earn <strong>1 Time per minute</strong> while grinding/being active.
+          Time is the main way to create the premium currencies.
+        </div>
+        <div class="currencyHelpCard">
+          <b>💎 Diamonds</b>
+          <strong>5 Time = 1 Diamond.</strong>
+          Diamonds are used in the rank-up system and Diamond Shop.
+        </div>
+        <div class="currencyHelpCard">
+          <b>🪙 Owner Tokens</b>
+          <strong>10 Time = 1 Owner Token.</strong>
+          Owner Tokens are premium currency for the Owners Shop and powerful unlocks.
+          They can <strong>only</strong> be obtained by converting Time.
+        </div>
+        <div class="currencyHelpCard">
+          <b>⭐ Points</b>
+          Points are regular server rewards. They can be given by authorized staff
+          and are used for certain server-owner upgrades.
+        </div>
+      </div>
+      <p class="muted" style="margin-top:10px">
+        Rank-up costs are controlled by the server's rank system. Owner Tokens cannot
+        be created with Points or Diamonds.
+      </p>
+    `);
+  }
+  window.openCurrencyHelp=currencyHelp;
+})();
+</script>
+
+<script id="lca-shop-aliases">
+(function(){
+  window.openDiamondShop=window.openDiamondShop||function(){
+    if(typeof modal==='function') modal(`
+      <div class="popupHead"><h2>💎 Diamond Shop</h2></div>
+      <p>Spend Diamonds on available server upgrades and rewards.</p>
+      <div id="diamondShopContent"></div>
+    `);
+  };
+  window.openOwnersShop=window.openOwnersShop||function(){
+    if(typeof modal==='function') modal(`
+      <div class="popupHead"><h2>🪙 Owners Shop</h2></div>
+      <p>Premium shop for Owner Tokens.</p>
+      <div id="ownersShopContent"></div>
+    `);
+  };
+})();
+</script>
+</body>
 </html>
