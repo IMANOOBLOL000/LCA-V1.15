@@ -1,10 +1,16 @@
 {
-  "name":"lca-v1.16-rebuild",
-  "version":"1.16.0",
-  "private":true,
-  "description":"LCA — Lucien's Chatting App",
-  "main":"server.js",
-  "scripts":{"start":"node server.js"},
-  "engines":{"node":">=20"},
-  "dependencies":{"express":"^5.1.0"}
+  "name": "lca",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LCA messaging and community server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=24.0.0 <25.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
 }
