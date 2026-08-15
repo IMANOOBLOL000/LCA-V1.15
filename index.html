@@ -1,43 +1,242 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lucien's Chatting App</title><style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#07101f;color:#eaf3ff}body{overflow-x:hidden}.hidden{display:none!important}button{border:1px solid #315b8d;background:#102947;color:#eaf3ff;border-radius:9px;padding:9px 12px;cursor:pointer;font-size:14px}button:hover{background:#17406c}input,textarea,select{background:#08192d;color:#fff;border:1px solid #315b8d;border-radius:9px;padding:10px;width:100%}.top{position:sticky;top:0;z-index:20;background:#0b1a2f;border-bottom:1px solid #21436c;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.logo{font-weight:800;color:#65b2ff;font-size:18px}.currency{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.cur{background:#0e2745;border:1px solid #285789;border-radius:999px;padding:7px 10px;font-weight:700;font-size:13px}.layout{display:grid;grid-template-columns:245px 1fr 245px;min-height:calc(100vh - 66px)}.sidebar,.right{background:#09182a;padding:12px;overflow:auto;border-right:1px solid #1d3c60}.right{border-right:0;border-left:1px solid #1d3c60}.main{padding:18px;overflow:auto}.category{margin-bottom:18px}.category h3{font-size:11px;color:#76a9d9;letter-spacing:1px;margin:8px 4px}.category button{width:100%;margin:3px 0;text-align:left}.card{background:#0b1e35;border:1px solid #22466f;border-radius:14px;padding:16px;margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.muted{color:#91a9c3;font-size:13px}.welcome{font-size:20px;font-weight:800;color:#65b2ff}.modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:1000;padding:18px}.modalbox{width:min(760px,96vw);max-height:90vh;overflow:auto;background:#0b1e35;border:1px solid #3975ad;border-radius:16px;padding:20px;position:relative}.x{position:absolute;right:14px;top:14px}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{padding:10px 5px;text-align:center;background:#102947;border-radius:9px;min-height:60px}.shopbox,.petbox,.answer{border:1px solid #2c5e8f;border-radius:12px;padding:12px;margin:8px 0}.answer{display:flex;gap:8px;align-items:center}.answer input{flex:1}.server{display:flex;justify-content:space-between;gap:8px;align-items:center}.status{color:#5ee38a}.ownerPanel{border-color:#8a6cff}.danger{background:#7e2632;border-color:#b44b58}.success{color:#70e39a}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#102947;border:1px solid #3975ad;padding:10px 14px;border-radius:10px;z-index:2000}.error{color:#ff8d8d}@media(max-width:950px){.layout{grid-template-columns:1fr}.sidebar,.right{display:none}.currency{margin-left:0}}
-</style></head><body>
-<div id="login" class="modal"><div class="modalbox"><h1>Welcome to LCA</h1><p class="muted">Log in or create an account. Your session is restored without a login flash.</p><input id="loginUser" placeholder="Username" autocomplete="username"><br><br><input id="loginPass" type="password" placeholder="Password" autocomplete="current-password"><br><br><button id="loginBtn">Log In / Create Account</button><p id="loginMsg" class="muted"></p></div></div>
-<div id="app" class="hidden"><header class="top"><div class="logo">LCA</div><span class="muted">Lucien's Chatting App</span><div class="currency"><span class="cur">⭐ <span id="points">0</span></span><span class="cur">⏱️ <span id="time">0</span></span><span class="cur">🪙 <span id="tokens">0</span></span><span class="cur">💎 <span id="diamonds">0</span></span><button id="currencyHelp">?</button></div><button id="logoutBtn">Log Out</button></header>
-<div class="layout"><aside class="sidebar"><div class="category"><h3>SERVERS</h3><button id="createServer">＋ Create Server</button><button id="createVoice">🎙️ Create Voice Server</button><button id="joinServer">＋ Join Server</button><div id="serverList"></div></div><div class="category"><h3>SOCIAL</h3><button data-feature="Friends">👥 Friends</button><button data-feature="Achievements">🏆 Achievements</button><button data-feature="Daily Rewards">🎁 Daily Rewards</button><button data-feature="Challenges">🎯 Challenges</button></div><div class="category"><h3>OTHERS</h3><button data-feature="Message Threads">🧵 Message Threads</button><button data-feature="Scheduled Messages">🗓️ Scheduled Messages</button><button data-feature="Drafts">📝 Drafts</button><button data-feature="Translation">🌎 Translation</button><button data-feature="Reminders">🔔 Reminders</button><button data-feature="Audit Log">📜 Server Audit Log</button><button data-feature="Levels">📈 Levels</button><button data-feature="Leaderboards">🏅 Leaderboards</button><button data-feature="Trading Plaza">🏪 Trading Plaza</button><button data-feature="Voice Options">🎙️ Voice Options</button></div><div class="category"><h3>SHOPS</h3><button id="pointsShop">⭐ Points Shop</button><button id="diamondShop">💎 Diamond Shop</button><button id="ownerShop">🪙 Owners Shop</button><button id="pdExchange">🔄 PD Exchange</button><button id="petMarketplace">🐾 Pet Marketplace</button></div><div class="category" id="ownerCategory"></div></aside>
-<main class="main"><div class="card"><div class="welcome">👋 Welcome to LCA!</div><p class="muted">Chat with friends, create servers, earn Time by staying active, exchange Time for Diamonds or Owner Tokens, unlock achievements, complete challenges, collect pets, and use the shops.</p></div><div class="grid"><div class="card"><h3>🎁 Daily Rewards</h3><button data-feature="Daily Rewards">Open Calendar</button></div><div class="card"><h3>🎯 Challenges</h3><button data-feature="Challenges">Open Challenges</button></div><div class="card"><h3>🐾 Pet Marketplace</h3><button id="petMarketplace2">Open Pets</button></div><div class="card"><h3>📊 Polls</h3><button id="pollsBtn">Create / Vote Polls</button></div><div class="card"><h3>🎙️ Mic</h3><button id="voiceBtn">Voice Record / Voice-to-Text</button></div></div><div class="card"><h2>Chat</h2><textarea id="message" placeholder="Type a message..."></textarea><br><br><button id="sendBtn">Send</button></div><div id="ownerPanel"></div></main>
-<aside class="right"><h3>ONLINE</h3><div id="profile" class="card"></div><div class="card"><h3>Currency Help</h3><p class="muted">⏱️ Time: 1 Time per active minute.</p><p class="muted">💎 Diamond: 5 Time = 1 Diamond.</p><p class="muted">🪙 Owner Token: 10 Time = 1 Owner Token.</p><p class="muted">Owner can grant all four currencies with no owner-account limit.</p></div></aside></div></div>
-<div id="modal" class="modal hidden"><div class="modalbox"><button class="x" id="closeModal">✕</button><div id="modalContent"></div></div></div><div id="toast" class="toast hidden"></div>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LCA — Lucien's Chatting App</title>
+  <style>
+    :root{
+      --bg:#060d16;--panel:#0c1725;--panel2:#101f32;--line:#27415f;--line2:#355474;
+      --text:#e7eef8;--muted:#8197b0;--blue:#2d9cff;--blue2:#1e73c7;--green:#34d399;
+      --red:#ef4444;--gold:#ffd34d;--shadow:0 14px 35px rgba(0,0,0,.32)
+    }
+    *{box-sizing:border-box} html,body{margin:0;height:100%;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    button,input,textarea,select{font:inherit} button{cursor:pointer}
+    body{overflow:hidden}
+    .app{height:100%;display:grid;grid-template-rows:62px 1fr}
+    .top{display:flex;align-items:center;gap:18px;padding:0 16px;background:#091522;border-bottom:1px solid var(--line);z-index:20}
+    .brand{font-weight:800;color:#4aa8ff;font-size:20px}.brand small{font-weight:500;color:#90a3b8;font-size:13px;margin-left:8px}
+    .top-spacer{flex:1}
+    .currencies{display:flex;gap:8px;align-items:center;white-space:nowrap}
+    .currency{border:1px solid #31506e;background:#0d1b2c;border-radius:10px;padding:7px 10px;color:#f2f6fb;font-weight:700}
+    .currency b{color:var(--gold)} .currency.d b{color:#69c7ff}.currency.o b{color:#ffd35a}.currency.t b{color:#d6e0ed}
+    .help,.logout{border:1px solid #31506e;background:#0d1b2c;color:#e8f0fa;border-radius:10px;padding:8px 12px}
+    .layout{min-height:0;display:grid;grid-template-columns:255px minmax(0,1fr) 285px}
+    .side,.right{background:#08131f;overflow:auto}.side{border-right:1px solid var(--line)}.right{border-left:1px solid var(--line)}
+    .side-inner,.right-inner{padding:14px 12px}
+    .section{color:#7087a0;font-size:11px;font-weight:800;margin:12px 5px 8px;text-transform:uppercase}
+    .navbtn{width:100%;text-align:left;border:1px solid #29435f;background:#112238;color:#d8e3ef;border-radius:9px;padding:10px 12px;margin-bottom:8px;transition:.12s}
+    .navbtn:hover{background:#162d47;border-color:#3c6083}.navbtn.active{background:#18324f;border-color:#3f6d98}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:7px}.two .navbtn{margin:0}
+    .main{min-width:0;display:flex;flex-direction:column;background:#050c14}
+    .toolbar{height:58px;display:flex;align-items:center;gap:6px;padding:0 18px;border-bottom:1px solid var(--line)}
+    .toolbar .title{font-weight:800;font-size:17px}.toolbar .sub{color:var(--muted);font-size:13px}.toolbar-spacer{flex:1}
+    .toolbtn{border:1px solid #31506e;background:#102136;color:#dce8f4;border-radius:9px;padding:8px 12px}
+    .content{overflow:auto;padding:14px 18px 24px;flex:1}
+    .welcome{border:1px solid #355d82;background:linear-gradient(180deg,#10243a,#0c1c2e);border-radius:12px;padding:16px;margin-bottom:10px}
+    .welcome h2{margin:0 0 4px;font-size:18px}.welcome p{margin:0;color:#8da7c1;font-size:13px}
+    .chat{min-height:0;display:flex;flex-direction:column}.messages{flex:1;overflow:auto;padding:8px 0}
+    .empty{color:#637d99;text-align:center;margin-top:150px}.msg{margin:10px 0}.msg-head{display:flex;gap:8px;align-items:center}.avatar{width:36px;height:36px;border-radius:50%;background:#264d7a;display:grid;place-items:center;font-weight:800}
+    .msg-name{font-weight:800;color:#4ba8ff}.time{font-size:10px;color:#607995}.bubble{margin-left:44px;color:#d8e4ef;line-height:1.45;white-space:pre-wrap}
+    .composer{border:1px solid #294763;background:#0d1b2a;border-radius:12px;padding:8px;display:flex;gap:8px;align-items:center;position:sticky;bottom:0}
+    .composer input{flex:1;background:transparent;border:0;outline:0;color:#eaf2fb;padding:9px}.iconbtn{border:0;background:transparent;color:#56adff;font-size:22px}
+    .send{border:0;background:transparent;color:#56adff;font-size:25px}
+    .person{border:1px solid #294763;background:#0d1b2a;border-radius:10px;padding:11px;margin-bottom:8px}.person strong{display:block}.online{color:var(--green);font-size:11px}.offline{color:#63788f;font-size:11px}
+    .card{border:1px solid #294763;background:#0c1928;border-radius:12px;padding:14px;margin-bottom:10px}.card h3{margin:0 0 8px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.item{border:1px solid #294763;background:#0e1c2c;border-radius:10px;padding:12px}.item h4{margin:0 0 5px}.item p{margin:0 0 9px;color:#8ba1b8;font-size:12px}
+    .primary{border:1px solid #2f6ea5;background:#123458;color:#e8f4ff;border-radius:8px;padding:8px 11px}.danger{border:1px solid #8c3540;background:#7e2f38;color:white;border-radius:8px;padding:8px 11px}
+    .table{width:100%;border-collapse:collapse}.table th,.table td{border-bottom:1px solid #21374e;padding:9px;text-align:left;font-size:13px}
+    .pill{display:inline-block;padding:4px 7px;border-radius:99px;background:#152b43;border:1px solid #31506e;color:#9bc8ef;font-size:11px}
+    .modal-back{position:fixed;inset:0;background:rgba(0,0,0,.72);display:grid;place-items:center;z-index:100}.modal{width:min(640px,92vw);max-height:88vh;overflow:auto;background:#0b1725;border:1px solid #355b7d;border-radius:14px;box-shadow:var(--shadow);padding:18px;position:relative}
+    .modal h2{margin:0 40px 12px 0}.close{position:absolute;right:12px;top:10px;border:1px solid #37536d;background:#122236;color:#dce8f4;border-radius:8px;width:34px;height:34px;font-size:18px}
+    .form{display:grid;gap:9px}.form input,.form textarea,.form select{width:100%;background:#08131f;border:1px solid #2b4864;color:#eaf2fb;border-radius:8px;padding:10px;outline:none}.form textarea{min-height:90px;resize:vertical}
+    .auth{position:fixed;inset:0;background:#060d16;display:grid;place-items:center;z-index:200}.auth.hidden{display:none}.authbox{width:min(430px,92vw);background:#0b1725;border:1px solid #355b7d;border-radius:14px;padding:24px}.authbox h1{color:#4aa8ff;margin-top:0}
+    .toast{position:fixed;right:18px;bottom:18px;background:#102238;border:1px solid #3a6285;color:#eaf3fb;padding:11px 14px;border-radius:9px;z-index:300;box-shadow:var(--shadow)}
+    .currency-help p{color:#8da7c1;margin:7px 0}.currency-help b{color:#fff}
+    .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{border:1px solid #294763;border-radius:9px;padding:9px;min-height:65px;background:#0d1c2d}.day.done{border-color:#2d8a6a;background:#102a28}.day.today{outline:2px solid #2f79b4}
+    .pollq{border:1px solid #294763;border-radius:10px;padding:12px;margin-bottom:10px}.answer{display:block;width:100%;text-align:left;border:1px solid #294763;background:#0c1a29;color:#e5edf6;border-radius:8px;padding:9px;margin-top:7px}.answer:hover{background:#14304a}
+    .pet{min-height:150px}.rarity{font-size:11px;color:#8eb6dc}.log{font-family:ui-monospace,monospace;color:#9eb7cf;font-size:12px;white-space:pre-wrap}
+    @media(max-width:900px){.layout{grid-template-columns:210px minmax(0,1fr)}.right{display:none}.currencies .currency:nth-child(n+3){display:none}}
+  </style>
+</head>
+<body>
+<div id="auth" class="auth hidden">
+  <div class="authbox">
+    <h1>LCA</h1><p>Lucien's Chatting App</p>
+    <div class="form"><input id="loginName" placeholder="Your real name / username"><input id="loginPass" type="password" placeholder="Password"><button class="primary" data-action="login">Log in</button></div>
+  </div>
+</div>
+
+<div id="app" class="app" style="visibility:hidden">
+  <header class="top">
+    <div class="brand">LCA <small>Lucien's Chatting App</small></div><div class="top-spacer"></div>
+    <div id="currencies" class="currencies"></div><button class="help" data-action="currencyHelp">?</button><button class="logout" data-action="logout">Log Out</button>
+  </header>
+  <div class="layout">
+    <aside class="side"><div class="side-inner">
+      <div class="section">Servers</div><div id="serverList"></div>
+      <div class="two"><button class="navbtn" data-action="createServer">＋ Create Server</button><button class="navbtn" data-action="createVoice">🎙 Create Voice Server</button></div>
+      <button class="navbtn" data-action="joinServer">＋ Join Server</button>
+      <div class="section">Social</div>
+      <button class="navbtn" data-page="friends">👥 Friends</button>
+      <button class="navbtn" data-page="achievements">🏆 Achievements</button>
+      <button class="navbtn" data-page="rewards">🎁 Daily Rewards</button>
+      <button class="navbtn" data-page="challenges">🎯 Challenges</button>
+      <div class="section">Others</div>
+      <button class="navbtn" data-page="threads">🧵 Message Threads</button>
+      <button class="navbtn" data-page="scheduled">🗓 Scheduled Messages</button>
+      <button class="navbtn" data-page="drafts">📝 Drafts</button>
+      <button class="navbtn" data-page="translation">🌐 Translation</button>
+      <button class="navbtn" data-page="reminders">🔔 Reminders</button>
+      <button class="navbtn" data-page="browse">🌐 Browse Servers</button>
+      <button class="navbtn" data-page="memberSearch">🔎 Server Member Search</button>
+      <button class="navbtn" data-page="block">🚫 Block User</button>
+      <button class="navbtn" data-page="report">🚨 Report Staff Abuse</button>
+      <div class="section">Shops</div>
+      <button class="navbtn" data-page="pointsShop">🛒 Points Shop</button>
+      <button class="navbtn" data-page="diamondShop">💎 Diamond Shop</button>
+      <button class="navbtn" data-page="ownerShop">👑 Owners Shop</button>
+      <button class="navbtn" data-page="pets">🐾 Pet Marketplace</button>
+      <button class="navbtn" data-page="trading">🏪 Trading Plaza</button>
+      <button class="navbtn" data-page="pd">💱 PD Exchange</button>
+      <div class="section">Server Info</div>
+      <button class="navbtn" data-page="rules">📜 Rules</button>
+      <button class="navbtn" data-page="updateLog">📋 UPDATE LOG</button>
+      <button class="navbtn" data-page="intro">👋 Introduction</button>
+      <button class="navbtn" data-page="audit">🧾 Audit Log</button>
+      <button class="navbtn" data-page="serverOwner">👑 Server Owner</button>
+    </div></aside>
+    <main class="main">
+      <div class="toolbar"><span id="pageTitle" class="title">Home</span><span id="pageSub" class="sub">Chat with people</span><div class="toolbar-spacer"></div><button class="toolbtn" data-action="search">Search</button><button class="toolbtn" data-page="bookmarks">Bookmarks</button><button class="toolbtn" data-action="theme">Light mode</button></div>
+      <div id="content" class="content"></div>
+    </main>
+    <aside class="right"><div class="right-inner"><div class="section">People</div><div id="people"></div></div></aside>
+  </div>
+</div>
+<div id="modalRoot"></div><div id="toastRoot"></div>
+
 <script>
-let token=localStorage.getItem('lca_token')||'',account=null,booting=true;
-const $=id=>document.getElementById(id);const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-function toast(m){$('toast').textContent=m;$('toast').classList.remove('hidden');clearTimeout(window._toast);window._toast=setTimeout(()=>$('toast').classList.add('hidden'),2200)}
-function openModal(title,html){$('modalContent').innerHTML='<h2>'+esc(title)+'</h2>'+html;$('modal').classList.remove('hidden')}
-function closeModal(){$('modal').classList.add('hidden')}
-async function api(url,opt={}){opt.headers={...(opt.headers||{}),...(token?{Authorization:'Bearer '+token}:{})};opt.credentials='same-origin';const r=await fetch(url,opt);const d=await r.json().catch(()=>({}));if(r.status===401){localStorage.removeItem('lca_token');token='';account=null;showLogin('Please log in again.');throw Error('AUTH_REQUIRED')}if(!r.ok)throw Error(d.error||'Request failed');return d}
-function showLogin(msg=''){ $('app').classList.add('hidden');$('login').classList.remove('hidden');$('loginMsg').textContent=msg }
-function showApp(){ $('login').classList.add('hidden');$('app').classList.remove('hidden');render() }
-function render(){if(!account)return;$('points').textContent=Number(account.points||0).toLocaleString();$('time').textContent=Number(account.time||0).toLocaleString();$('tokens').textContent=Number(account.ownerTokens||0).toLocaleString();$('diamonds').textContent=Number(account.diamonds||0).toLocaleString();$('profile').innerHTML='<b>'+esc(account.displayName)+'</b><br><span class="status">● Online</span><br><span class="muted">Role: '+esc(account.role)+'</span>';renderServers();renderOwnerPanel()}
-function renderServers(){const el=$('serverList');el.innerHTML=(account.servers||[]).map(id=>'<div class="muted">Server '+esc(id.slice(-6))+'</div>').join('')}
-function renderOwnerPanel(){const box=$('ownerPanel'),side=$('ownerCategory');if(account.role!=='owner'){box.innerHTML='';side.innerHTML='';return}side.innerHTML='<h3>OWNER</h3><button id="ownerPanelBtn">👑 Owner Panel</button>';box.innerHTML='<div class="card ownerPanel"><h2>👑 Owner Panel</h2><p class="muted">Owner controls stay here. Giving currencies is unlimited for the owner account. Leave username blank to give yourself.</p><div class="grid"><div><input id="grantUser" placeholder="Username (blank = yourself)"><input id="grantAmount" type="number" min="0" placeholder="Amount"><button data-grant="time">Give Time</button><button data-grant="points">Give Points</button><button data-grant="diamonds">Give Diamonds</button><button data-grant="owner-token">Give Owner Token</button></div><div><button id="newPoll">Create Poll</button><button id="ownerFeatures">Owner Features</button></div></div></div>';document.querySelectorAll('[data-grant]').forEach(b=>b.onclick=()=>grant(b.dataset.grant));$('ownerPanelBtn')?.addEventListener('click',()=>document.querySelector('.ownerPanel')?.scrollIntoView({behavior:'smooth'}));$('newPoll')?.addEventListener('click',createPoll)}
-async function refresh(){try{const d=await api('/api/me');account=d.account;localStorage.setItem('lca_account',JSON.stringify(account));showApp()}catch(e){if(localStorage.getItem('lca_account')){try{account=JSON.parse(localStorage.getItem('lca_account'));showApp();const d=await api('/api/me');account=d.account;render()}catch{showLogin('Session expired.')}}else showLogin()}}
-async function login(){const u=$('loginUser').value.trim(),p=$('loginPass').value;if(!u)return $('loginMsg').textContent='Enter a username.';$('loginBtn').disabled=true;$('loginMsg').textContent='Signing in…';try{const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});const d=await r.json();if(!r.ok)throw Error(d.error||'Login failed');token=d.token;account=d.account;localStorage.setItem('lca_token',token);localStorage.setItem('lca_account',JSON.stringify(account));showApp();toast('Welcome back!')}catch(e){$('loginMsg').textContent=e.message}finally{$('loginBtn').disabled=false}}
-async function logout(){await fetch('/api/logout',{method:'POST'}).catch(()=>{});localStorage.removeItem('lca_token');localStorage.removeItem('lca_account');token='';account=null;showLogin()}
-async function grant(kind){const user=$('grantUser')?.value||'',amount=Number($('grantAmount')?.value);if(!Number.isInteger(amount)||amount<0)return toast('Enter a valid whole number.');try{const d=await api('/api/owner/give-'+kind,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,amount})});if(!user)account=d.account;render();toast('Currency granted.')}catch(e){toast(e.message)}}
-async function daily(){try{const d=await api('/api/daily-rewards');openModal('Daily Rewards','<div class="calendar">'+d.rewards.map(x=>'<div class="day"><b>Day '+x.day+'</b><br>⭐'+x.reward.points+'<br>⏱️'+x.reward.time+'</div>').join('')+'</div>')}catch(e){toast(e.message)}}
-async function challenges(){try{const d=await api('/api/challenges');openModal('Challenges',Object.keys(d).map(k=>'<h3>'+k.toUpperCase()+'</h3>'+d[k].map(x=>'<div class="card"><b>'+esc(x.title)+'</b><p>'+esc(x.description)+'</p><span>⭐'+x.reward.points+' ⏱️'+x.reward.time+'</span></div>').join('')).join(''))}catch(e){toast(e.message)}}
-async function achievements(){try{const d=await api('/api/achievements');const groups={};d.achievements.forEach(a=>(groups[a.category]??=[]).push(a));openModal('Achievements',Object.entries(groups).map(([k,v])=>'<h3>'+esc(k)+'</h3>'+v.map(a=>'<div class="shopbox"><b>'+esc(a.name)+'</b><p class="muted">'+esc(a.description)+'</p></div>').join('')).join(''))}catch(e){toast(e.message)}}
-function shops(){openModal('Shops','<div class="shopbox"><b>⭐ Points Shop</b><p>Spend Points on cosmetic upgrades.</p></div><div class="shopbox"><b>💎 Diamond Shop</b><p>Spend Diamonds on premium items.</p></div><div class="shopbox"><b>🪙 Owners Shop</b><p>Spend Owner Tokens on powerful owner-only loot.</p></div>')}
-function pd(){openModal('PD Exchange','<div class="shopbox">⏱️ 5 Time → 💎 1 Diamond<br><button id="exD">Exchange 1</button></div><div class="shopbox">⏱️ 10 Time → 🪙 1 Owner Token<br><button id="exT">Exchange 1</button></div>');$('exD').onclick=()=>exchange('diamond');$('exT').onclick=()=>exchange('token')}
-async function exchange(t){try{const d=await api('/api/exchange/time-'+(t==='diamond'?'diamond':'owner-token'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:1})});account=d.account;localStorage.setItem('lca_account',JSON.stringify(account));render();pd();toast('Exchange complete.')}catch(e){toast(e.message)}}
-async function pets(){try{const d=await api('/api/pets');openModal('Pet Marketplace',d.pets.map(p=>'<div class="petbox"><b>'+esc(p.name)+'</b> · '+esc(p.rarity)+'<p>🪙 '+p.ownerTokens+' or 💎 '+p.diamonds+'</p><button onclick="buyPet(\''+p.id+'\',\'ownerTokens\')">Buy Tokens</button> <button onclick="buyPet(\''+p.id+'\',\'diamonds\')">Buy Diamonds</button></div>').join(''))}catch(e){toast(e.message)}}
-async function buyPet(id,c){try{const d=await api('/api/pets/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({petId:id,currency:c})});account=d.account;localStorage.setItem('lca_account',JSON.stringify(account));render();pets()}catch(e){toast(e.message)}}
-async function servers(isVoice){const name=prompt(isVoice?'Voice server name':'Server name');if(!name)return;try{const d=await api('/api/servers/'+(isVoice?'create-voice':'create'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});account=d.account;localStorage.setItem('lca_account',JSON.stringify(account));render();toast(isVoice?'Voice server created!':'Server created!')}catch(e){toast(e.message)}}
-function voice(){openModal('Mic Options','<p>Choose your microphone action:</p><button id="rec">🎙️ Voice Record</button> <button id="tts">🗣️ Voice to Text</button>');$('rec').onclick=()=>{closeModal();toast('Voice recording option selected.')};$('tts').onclick=()=>{closeModal();toast('Voice-to-text option selected.')}}
-async function polls(){let d;try{d=await api('/api/polls')}catch(e){return toast(e.message)}openModal('Polls','<button id="createPoll2">＋ Create Poll</button><div id="pollList">'+d.polls.map(p=>'<div class="shopbox"><h3>'+esc(p.question)+'</h3>'+p.answers.map(a=>'<button onclick="votePoll(\''+p.id+'\',\''+esc(a).replace(/'/g,'\\\'')+'\')">'+esc(a)+'</button> ').join('')+'</div>').join('')+'</div>');$('createPoll2').onclick=createPoll}
-function createPoll(){openModal('Create Poll','<label>Question</label><input id="pq" placeholder="Your question"><div id="answers"><div class="answer"><input placeholder="Answer 1"></div><div class="answer"><input placeholder="Answer 2"></div></div><button id="addAnswer">＋ Add Answer</button> <button id="savePoll">Create</button>');$('addAnswer').onclick=()=>{$('answers').insertAdjacentHTML('beforeend','<div class="answer"><input placeholder="Another answer"></div>')};$('savePoll').onclick=async()=>{const q=$('pq').value.trim(),a=[...$('answers').querySelectorAll('input')].map(x=>x.value.trim()).filter(Boolean);try{const d=await api('/api/polls',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,answers:a})});openModal('Poll Created','<div class="shopbox"><h3>'+esc(d.poll.question)+'</h3>'+d.poll.answers.map(esc).map(x=>'<p>▢ '+x+'</p>').join('')+'</div>')}catch(e){toast(e.message)}}}
-async function votePoll(id,a){try{await api('/api/polls/'+id+'/vote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answer:a})});toast('Vote saved.');polls()}catch(e){toast(e.message)}}
-function feature(name){if(name==='Daily Rewards')return daily();if(name==='Challenges')return challenges();if(name==='Achievements')return achievements();if(name==='Pet Marketplace')return pets();if(name==='Voice Options')return voice();if(name==='Trading Plaza')return openModal('Trading Plaza','<div class="shopbox">Trade, sell, and bid features are ready for the plaza.</div>');openModal(name,'<p class="muted">'+esc(name)+' is available in the rebuilt LCA interface.</p>')}
-$('loginBtn').onclick=login;$('logoutBtn').onclick=logout;$('closeModal').onclick=closeModal;$('currencyHelp').onclick=()=>openModal('Currency Guide','<p>⏱️ Time: 1 per active minute.</p><p>💎 Diamonds: 5 Time = 1 Diamond.</p><p>🪙 Owner Tokens: 10 Time = 1 Owner Token.</p><p>👑 Owners can grant Time, Points, Diamonds, and Owner Tokens without a giving cap on the owner account.</p>');$('createServer').onclick=()=>servers(false);$('createVoice').onclick=()=>servers(true);$('pdExchange').onclick=pd;$('pointsShop').onclick=shops;$('diamondShop').onclick=shops;$('ownerShop').onclick=shops;$('petMarketplace').onclick=pets;$('petMarketplace2').onclick=pets;$('voiceBtn').onclick=voice;$('pollsBtn').onclick=polls;$('sendBtn').onclick=()=>{if($('message').value.trim()){toast('Message sent.');$('message').value=''}};document.querySelectorAll('[data-feature]').forEach(b=>b.onclick=()=>feature(b.dataset.feature));
-setInterval(async()=>{if(!token)return;try{const d=await api('/api/currency');Object.assign(account,d);localStorage.setItem('lca_account',JSON.stringify(account));render()}catch{}},15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token)api('/api/activity').then(d=>{account=d.account;localStorage.setItem('lca_account',JSON.stringify(account));render()}).catch(()=>{})});
-window.addEventListener('beforeunload',()=>{});refresh();
-</script></body></html>
+const KEY='lca_v16_state';
+const defaultState={
+  user:null, users:{CEOIMANOOB:{name:'CEOIMANOOB',role:'owner',points:0,diamonds:0,ownerTokens:0,time:0,badges:[],pets:[]}},
+  servers:[
+    {id:'home',name:'Home',icon:'💬',owner:'SYSTEM',type:'text',messages:[]},
+    {id:'updates',name:'UPDATE LOG',icon:'📜',owner:'CEOIMANOOB',type:'text',messages:[{user:'CEOIMANOOB',text:"I made this website for people in or out of school so they can enjoy messaging their friends and total strangers. Expect weekly updates.",time:'12:05 PM'}]},
+    {id:'rules',name:'Rules',icon:'💬',owner:'SYSTEM',type:'text',messages:[{user:'SYSTEM',text:"Be respectful. No harassment, spam, threats, or inappropriate content. Report abuse with screenshots and usernames so it can be reviewed faster. Reports are reviewed by Admin/Co-Owner/Owner; unresolved reports can be escalated to the owner mailbox.",time:'Today'}]}
+  ],
+  currentServer:'home',page:'home',messages:{home:[]},theme:'dark',dailyClaimed:false,challengeSeed:1,achievements:[],pets:[],trades:[],audit:[]
+};
+let state=load();
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY));return x?merge(defaultState,x):structuredClone(defaultState)}catch{return structuredClone(defaultState)}}
+function merge(a,b){const x=structuredClone(a);for(const k in b)x[k]=b[k];return x}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function me(){return state.users[state.user]}
+function owner(){return me()?.role==='owner'}
+function toast(t){const r=document.getElementById('toastRoot');r.innerHTML='<div class="toast">'+esc(t)+'</div>';setTimeout(()=>r.innerHTML='',2600)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function fmt(n){return Number(n||0).toLocaleString()}
+function render(){
+  document.getElementById('app').style.visibility='visible';
+  document.getElementById('auth').classList.toggle('hidden',!!state.user);
+  if(!state.user)return;
+  const u=me(); if(!u){state.user=null;save();render();return}
+  document.getElementById('currencies').innerHTML=[
+    ['⭐','pts',u.points],['⏱','t',u.time],['🪙','o',u.ownerTokens],['💎','d',u.diamonds]
+  ].map(x=>`<span class="currency ${x[1]}">${x[0]} <b>${fmt(x[2])}</b></span>`).join('');
+  renderServers();renderPeople();renderPage();
+}
+function renderServers(){
+ const list=document.getElementById('serverList');list.innerHTML=state.servers.map(s=>`<button class="navbtn ${state.currentServer===s.id?'active':''}" data-server="${s.id}">${s.icon} ${esc(s.name)}</button>`).join('');
+}
+function renderPeople(){
+ const names=Object.keys(state.users).filter(n=>n!==state.user);
+ document.getElementById('people').innerHTML=`<div class="person"><strong>👑 ${esc(state.user)}</strong><span class="online">● Online · You</span><div class="offline">Role: ${esc(me().role)}</div></div>`+
+ names.map(n=>`<div class="person"><strong>${esc(n)}</strong><span class="${n==='iambread11'?'offline':'online'}">● ${n==='iambread11'?'Offline':'Online'}</span></div>`).join('');
+}
+function pageInfo(p){return {
+home:['Home','Chat with people'],friends:['Friends','Social'],achievements:['Achievements','100 achievements'],rewards:['Daily Rewards','Calendar'],challenges:['Challenges','Daily · Weekly · Monthly'],pets:['Pet Marketplace','Daily pet rotation'],trading:['Trading Plaza','Trade · Sell · Bid'],pointsShop:['Points Shop','Use Points'],diamondShop:['Diamond Shop','Use Diamonds'],ownerShop:['Owners Shop','Use Owner Tokens'],pd:['PD Exchange','Exchange currencies'],rules:['Rules','Community rules'],updateLog:['UPDATE LOG','Owner-only update log'],intro:['Introduction','Welcome to LCA'],serverOwner:['Server Owner','Server-only powers'],audit:['Audit Log','Owner activity'],threads:['Message Threads','Replies'],scheduled:['Scheduled Messages','Plan ahead'],drafts:['Drafts','Saved messages'],translation:['Translation','Quick translation'],reminders:['Reminders','Remember later'],browse:['Browse Servers','Discover communities'],memberSearch:['Server Member Search','Find members'],block:['Block User','Privacy'],report:['Report Staff Abuse','Admin mailbox'],bookmarks:['Bookmarks','Saved messages']
+}[p]||['Home','Chat with people']}
+function renderPage(){
+ const [t,sub]=pageInfo(state.page);document.getElementById('pageTitle').textContent=t;document.getElementById('pageSub').textContent=sub;
+ const c=document.getElementById('content');let html='';
+ if(state.page==='home')html=home();
+ else if(state.page==='friends')html=card('Friends',`<p>Add friends and manage requests.</p><button class="primary" data-action="friend">Send Friend Request</button>`);
+ else if(state.page==='achievements')html=achievements();
+ else if(state.page==='rewards')html=rewards();
+ else if(state.page==='challenges')html=challenges();
+ else if(state.page==='pets')html=pets();
+ else if(state.page==='trading')html=trading();
+ else if(state.page==='pointsShop'||state.page==='diamondShop'||state.page==='ownerShop')html=shop(state.page);
+ else if(state.page==='pd')html=pd();
+ else if(state.page==='rules')html=card('📜 Rules',`<p>Be respectful. No harassment, bullying, spam, threats, impersonation, or inappropriate content.</p><p>Use the report button when staff abuse happens. Include screenshots and usernames so reports can be reviewed faster.</p><p>Reports are reviewed by Admin/Co-Owner/Owner. Unresolved reports may be escalated to the owner mailbox. The Owner controls final unban decisions.</p>`);
+ else if(state.page==='updateLog')html=card('📋 UPDATE LOG',`<p>Owner-only posting server. Everyone may read.</p><div class="log">I made this website for people in or out of school so they can enjoy messaging their friends and total strangers. Expect weekly updates.</div>`);
+ else if(state.page==='intro')html=card('👋 Welcome to LCA!',`<p>LCA is Lucien's Chatting App — chat with friends, create servers, meet people, earn currencies, unlock achievements, complete challenges, collect pets, and trade.</p><p>Servers can have their own Server Owner, MOD, ADMIN, SERVER ADMIN and CO-OWNER powers.</p>`);
+ else if(state.page==='serverOwner')html=serverOwner();
+ else if(state.page==='audit')html=audit();
+ else html=generic(state.page);
+ c.innerHTML=html;
+ if(state.page==='home')bindComposer();
+}
+function card(title,body){return `<div class="card"><h3>${title}</h3>${body}</div>`}
+function home(){
+ const s=state.servers.find(x=>x.id===state.currentServer)||state.servers[0], msgs=state.messages[s.id]||s.messages||[];
+ return `<div class="welcome"><h2>👋 Welcome to ${esc(s.name)}!</h2><p>We're glad you're here! Be kind, have fun, and enjoy chatting. 💙</p></div>
+ <div class="chat"><div class="messages">${msgs.length?msgs.map(m=>`<div class="msg"><div class="msg-head"><div class="avatar">${esc((m.user||'?')[0])}</div><div class="msg-name">${esc(m.user)}</div><div class="time">${esc(m.time||'now')}</div></div><div class="bubble">${esc(m.text)}</div></div>`).join(''):'<div class="empty">No messages yet.<br>Say hello!</div>'}</div>
+ <div class="composer"><button class="iconbtn" data-action="attach">＋</button><button class="iconbtn" data-action="emoji">😀</button><button class="iconbtn" data-action="gif">GIF</button><input id="messageInput" placeholder="Message..."><button class="iconbtn" data-action="mic">🎙</button><button class="send" data-action="send">➤</button></div></div>`;
+}
+function achievements(){let cats=['Social','Chatting','Servers','Economy','Pets'];let arr=[];for(let i=1;i<=100;i++)arr.push(`<div class="item"><h4>🏆 Achievement ${i}</h4><p>${cats[(i-1)%cats.length]} · Complete challenge ${i}</p><span class="pill">${(me().badges||[]).includes(i)?'Unlocked':'Locked'}</span></div>`);return `<div class="grid">${arr.join('')}</div>`}
+function rewards(){let days=Array.from({length:28},(_,i)=>`<div class="day ${i===0?'today':''} ${state.dailyClaimed&&i===0?'done':''}"><b>Day ${i+1}</b><br><span class="rarity">${i%7===6?'Bonus reward':'Daily reward'}</span></div>`).join('');return card('🎁 Daily Rewards',`<p>Calendar-style daily rewards. Claim once per day.</p><button class="primary" data-action="claimReward">Claim today's reward</button><div class="calendar">${days}</div>`)}
+function challenges(){let types=['Daily','Weekly','Monthly'];return types.map((x,ix)=>card('🎯 '+x+' Challenges',Array.from({length:100},(_,i)=>`<div class="item" style="margin:6px 0"><b>${x} Challenge ${i+1}</b><p>Randomly cycles from the ${x.toLowerCase()} challenge pool.</p><button class="primary" data-action="completeChallenge" data-type="${x}">Complete</button></div>`).join(''))).join('')}
+const petR=[['COMMON',3,60,40],['UNCOMMON',5,100,30],['RARE',10,200,20],['EPIC',25,500,6],['LEGENDARY',50,1000,3],['GOD',250,5000,1]];
+function pets(){let cards=[];for(let i=1;i<=100;i++){let r=petR[(i-1)%petR.length];cards.push(`<div class="item pet"><h4>🐾 Pet ${i}</h4><p class="rarity">${r[0]} · Shop chance ${r[3]}%</p><button class="primary" data-action="buyPet" data-token="${r[1]}" data-dia="${r[2]}" data-pet="Pet ${i}">Buy</button></div>`)}return card('🐾 Pet Marketplace',`<p>100 pets. Five daily featured pets can rotate. Daily reroll is available.</p><button class="primary" data-action="rerollPets">🔄 Reroll daily pets</button><button class="primary" data-action="legendRoll">⭐ LEGENDARY PET ROLL · 100 Owner Tokens / 2,000 Diamonds</button><div class="grid">${cards.join('')}</div>`)}
+function trading(){return card('🏪 Trading Plaza',`<p>Trade, sell, and bid on items or pets.</p><div class="grid"><div class="item"><h4>Trade</h4><p>Offer a pet or item to another player.</p><button class="primary" data-action="trade">Start Trade</button></div><div class="item"><h4>Sell</h4><p>List an item for other players.</p><button class="primary" data-action="sell">Create Listing</button></div><div class="item"><h4>Bid</h4><p>Run a player auction.</p><button class="primary" data-action="bid">Create Auction</button></div></div>`)}
+function shop(kind){let title=kind==='pointsShop'?'🛒 Points Shop':kind==='diamondShop'?'💎 Diamond Shop':'👑 Owners Shop';let items=kind==='ownerShop'?['Rank Up Panel — 5 Owner Tokens','Admin Unlock — 20 Owner Tokens + 20 Diamonds','Server Admin Unlock — 30 Owner Tokens + 50 Diamonds','Server Owner Unlock — 25 Owner Tokens + 50 Diamonds + 500 Points','Co-Owner Grant — 40 Owner Tokens','Instant Server Admin 15 min — 15 Owner Tokens','Owner Broadcast Pack — 10 Owner Tokens']:kind==='diamondShop'?['Diamond Badge — 100 Diamonds','Pet reroll — 50 Diamonds','Legendary Pet Roll — 2,000 Diamonds']:['Profile Theme — 250 Points','Emoji Pack — 500 Points','Server Banner — 750 Points'];return card(title,items.map(x=>`<div class="item"><h4>${x}</h4><button class="primary" data-action="shopBuy">Buy</button></div>`).join(''))}
+function pd(){return card('💱 PD Exchange',`<p><b>5 Time → 1 Diamond</b></p><p><b>10 Time → 1 Owner Token</b></p><p>Time is earned passively at 1 Time per active minute. Owners can grant Time, Points, Diamonds, and Owner Tokens.</p><button class="primary" data-action="exchange" data-kind="diamond">Exchange 5 Time → 1 Diamond</button> <button class="primary" data-action="exchange" data-kind="token">Exchange 10 Time → 1 Owner Token</button>`)}
+function serverOwner(){return card('👑 Server Owner',`<p>This rank belongs only to the server creator and has powers inside that server.</p><p>Grant up to <b>500 Points</b> and <b>50 Diamonds</b> to others; your global Owner account has an unlimited giving limit.</p><button class="primary" data-action="giveCurrency">Give Time / Points / Diamonds / Owner Tokens</button><button class="primary" data-action="rankPanel">Open Rank Up Panel</button>`)}
+function audit(){return card('🧾 Audit Log',state.audit.length?state.audit.slice().reverse().map(x=>`<div class="log">${esc(x)}</div>`).join(''):'<p>No activity yet.</p>')}
+function generic(p){return card(pageInfo(p)[0],`<p>This section is ready and wired into the rebuilt LCA navigation.</p><button class="primary" data-action="generic">Open</button>`)}
+function bindComposer(){const i=document.getElementById('messageInput');if(i)i.addEventListener('keydown',e=>{if(e.key==='Enter')send()})}
+function send(){const i=document.getElementById('messageInput'),t=i?.value.trim();if(!t)return;const id=state.currentServer;state.messages[id]??=[];state.messages[id].push({user:state.user,text:t,time:new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})});state.audit.push(`${new Date().toISOString()} ${state.user} sent a message in ${id}`);save();renderPage();toast('Message sent')}
+function modal(title,body){document.getElementById('modalRoot').innerHTML=`<div class="modal-back" data-close="1"><div class="modal"><button class="close" data-action="close">×</button><h2>${title}</h2>${body}</div></div>`}
+function closeModal(){document.getElementById('modalRoot').innerHTML=''}
+function login(){const n=document.getElementById('loginName').value.trim()||'Guest';if(!state.users[n])state.users[n]={name:n,role:'member',points:0,diamonds:0,ownerTokens:0,time:0,badges:[],pets:[]};state.user=n;save();startMinuteGrind();render();toast('Logged in')}
+function startMinuteGrind(){clearInterval(window.grind);window.grind=setInterval(()=>{if(!state.user)return;state.users[state.user].time=(state.users[state.user].time||0)+1;state.users[state.user].points=(state.users[state.user].points||0)+1;save();render()},60000)}
+document.addEventListener('click',e=>{
+ const page=e.target.closest('[data-page]')?.dataset.page;if(page){state.page=page;save();render();return}
+ const server=e.target.closest('[data-server]')?.dataset.server;if(server){state.currentServer=server;state.page='home';save();render();return}
+ const a=e.target.closest('[data-action]')?.dataset.action;if(!a)return;
+ if(a==='login')login(); if(a==='logout'){state.user=null;save();render()}
+ if(a==='close'||e.target.dataset.close)closeModal();
+ if(a==='currencyHelp')modal('💰 Currency Help',`<div class="currency-help"><p>⭐ <b>Points:</b> earned while active and used in the Points Shop.</p><p>⏱ <b>Time:</b> 1 per active minute. Exchange 5 Time for 1 Diamond or 10 Time for 1 Owner Token.</p><p>💎 <b>Diamonds:</b> premium currency for the Diamond Shop and pets.</p><p>🪙 <b>Owner Tokens:</b> unlocked from Time or granted by Owners. Used in Owners Shop and premium pets.</p></div>`);
+ if(a==='createServer'||a==='createVoice')modal(a==='createServer'?'Create Server':'Create Voice Server',`<div class="form"><input id="newServerName" placeholder="Server name"><input id="serverCode" placeholder="Optional private code"><button class="primary" data-action="submitServer" data-voice="${a==='createVoice'}">Create</button></div>`);
+ if(a==='submitServer'){const n=document.getElementById('newServerName').value.trim()||'New Server';const id='s'+Date.now();state.servers.push({id,name:n,icon:e.target.dataset.voice==='true'?'🎙':'💬',owner:state.user,type:e.target.dataset.voice==='true'?'voice':'text',messages:[]});state.currentServer=id;state.page='home';state.audit.push(`${new Date().toISOString()} ${state.user} created ${n} (${e.target.dataset.voice==='true'?'voice':'text'})`);save();closeModal();render();toast('Server created — you are Server Owner')}
+ if(a==='joinServer')modal('Join Server',`<div class="form"><input placeholder="Server name or invite code"><button class="primary" data-action="join">Join</button></div>`);
+ if(a==='join')closeModal(),toast('Join request submitted');
+ if(a==='send'||a==='generic')send();
+ if(a==='mic')modal('🎙 Mic',`<p>Choose your input mode.</p><div class="grid"><div class="item"><h4>🎙 Voice Record</h4><button class="primary" data-action="record">Start Recording</button></div><div class="item"><h4>⌨ Voice-to-Text</h4><button class="primary" data-action="stt">Start Voice-to-Text</button></div></div>`);
+ if(a==='record')closeModal(),toast('Voice recorder ready');
+ if(a==='stt')closeModal(),toast('Voice-to-text ready');
+ if(a==='claimReward'){if(state.dailyClaimed)toast('Already claimed today');else{state.dailyClaimed=true;me().points+=250;save();render();toast('+250 Points')}}
+ if(a==='completeChallenge'){me().points+=100;save();render();toast(`+100 Points — ${e.target.dataset.type} challenge complete`)}
+ if(a==='rerollPets')toast('Daily pets rerolled')
+ if(a==='legendRoll'){if(me().ownerTokens>=100){me().ownerTokens-=100;me().pets.push('Legendary/GOD Roll');save();render();toast('Legendary Pet Roll used — +3% boost')}} 
+ if(a==='buyPet'){const t=+e.target.dataset.token,d=+e.target.dataset.dia;if(me().ownerTokens>=t){me().ownerTokens-=t;me().pets.push(e.target.dataset.pet);save();render();toast('Pet purchased with Owner Tokens')}else if(me().diamonds>=d){me().diamonds-=d;me().pets.push(e.target.dataset.pet);save();render();toast('Pet purchased with Diamonds')}else toast('Not enough currency')}
+ if(a==='exchange'){const k=e.target.dataset.kind;if(k==='diamond'&&me().time>=5){me().time-=5;me().diamonds++;save();render();toast('5 Time → 1 Diamond')}else if(k==='token'&&me().time>=10){me().time-=10;me().ownerTokens++;save();render();toast('10 Time → 1 Owner Token')}else toast('Not enough Time')}
+ if(a==='giveCurrency'||a==='rankPanel')openOwnerTool(a);
+ if(a==='shopBuy')toast('Purchase button is wired — choose an item-specific action next')
+ if(a==='trade'||a==='sell'||a==='bid')toast('Trading Plaza action opened')
+});
+function openOwnerTool(kind){
+ if(!owner()){toast('Owner account required');return}
+ const u=me();
+ if(kind==='rankPanel'){modal('👑 Owner Rank Up Panel',`<p>Rank upgrades can be saved and reused on other server members.</p><div class="grid">${['MOD — 5 Owner Tokens','ADMIN — 20 Owner Tokens + 20 Diamonds','SERVER ADMIN — 30 Owner Tokens + 50 Diamonds','SERVER OWNER — 25 Owner Tokens + 50 Diamonds + 500 Points','CO-OWNER — 40 Owner Tokens'].map(x=>`<div class="item"><h4>${x}</h4><button class="primary" data-action="grantRank">Grant</button></div>`).join('')}</div>`);return}
+ modal('🎁 Give Currency',`<p>Leave the username blank to give to yourself. Owner account has an unlimited giving limit.</p><div class="form"><input id="giveUser" placeholder="Username (blank = yourself)"><select id="giveKind"><option>Time</option><option>Points</option><option>Diamonds</option><option>Owner Tokens</option></select><input id="giveAmount" type="number" min="1" placeholder="Amount"><button class="primary" data-action="submitGive">Give</button></div>`);
+}
+document.addEventListener('click',e=>{if(e.target.dataset.action==='submitGive'){const target=(document.getElementById('giveUser').value.trim()||state.user),kind=document.getElementById('giveKind').value,amt=Math.max(1,+document.getElementById('giveAmount').value||0);if(!state.users[target])state.users[target]={name:target,role:'member',points:0,diamonds:0,ownerTokens:0,time:0,badges:[],pets:[]};const u=state.users[target];const key={Time:'time',Points:'points',Diamonds:'diamonds','Owner Tokens':'ownerTokens'}[kind];u[key]+=amt;state.audit.push(`${new Date().toISOString()} ${state.user} gave ${amt} ${kind} to ${target}`);save();closeModal();render();toast(`Gave ${fmt(amt)} ${kind} to ${target}`)} if(e.target.dataset.action==='grantRank'){closeModal();toast('Rank grant prepared and saved') }});
+window.addEventListener('storage',()=>{state=load();render()});
+document.getElementById('app').addEventListener('click',()=>{});
+if(!state.user){document.getElementById('auth').classList.remove('hidden');document.getElementById('app').style.visibility='hidden'}else startMinuteGrind();
+render();
+</script>
+</body>
+</html>

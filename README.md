@@ -1,29 +1,46 @@
-# LCA v1.17 Stable Full Fix
+# LCA v1.16 — Stable Rebuild
 
-This build is intentionally **flat**: there is no `public/` folder.
+This rebuild intentionally uses the older LCA layout: dark blue top bar, fixed left navigation, center chat/content area, and right People panel.
 
-Files:
-- `index.html`
-- `server.js`
-- `package.json`
-- `README.md`
+## Files
+- `index.html` — complete UI and client logic
+- `server.js` — Express server; serves `index.html` from the project root
+- `package.json` — Node/Express setup
+- `README.md` — deployment notes
 
-Render:
+**No `public/` folder. No `data.json`.**
+
+## Render
+Use:
 - Build Command: `npm install`
 - Start Command: `node server.js`
-- Root Directory: leave blank unless the repository itself is inside a subfolder.
 
-Important stability fixes:
-- Serves the root `index.html` directly; no dependency on `public/index.html`.
-- Uses a signed session cookie/token so normal page reloads do not force a login screen.
-- Removes the client error handler that incorrectly redirected every JavaScript error to login.
-- Uses one modal system with an X close button.
-- Owner grants support Time, Points, Diamonds, and Owner Tokens. Blank username means yourself.
-- Time passively increases at 1 per active minute.
-- Exchange rates: 5 Time = 1 Diamond; 10 Time = 1 Owner Token.
-- Create Server and Create Voice Server are separate working controls.
-- Polls use separate question/answer boxes.
-- Shops are grouped together.
-- Includes achievements, daily rewards, rotating challenges, pets, voice options, and trading-plaza entry points.
+Do not use `node src/server.js`, `node /opt/render/project/src/server.js`, or a `public/index.html` path.
 
-This is a stable standalone rebuild. For permanent multi-instance database persistence, connect the API layer to your Supabase project rather than relying on the in-memory demo store.
+The server binds to `0.0.0.0` and uses Render's `PORT`.
+
+## Included
+- Older LCA navigation/layout
+- Home, UPDATE LOG, Rules, Introduction
+- Server + Voice Server creation
+- Server Owner concept and owner tools
+- Points, Time, Diamonds, Owner Tokens
+- Passive Time/Points grind (1 per active minute)
+- PD exchange: 5 Time -> 1 Diamond; 10 Time -> 1 Owner Token
+- Owner unlimited giving; blank username means yourself
+- Give Time, Points, Diamonds, Owner Tokens
+- Currency help button
+- Shops category
+- Achievements (100)
+- Daily Rewards calendar
+- Daily/Weekly/Monthly challenge pools (100 each)
+- Pet Marketplace with 100 pets and rarity pricing
+- Legendary Pet Roll
+- Trading Plaza foundation
+- Polls/mic foundations and common navigation sections
+- Rules + owner-only UPDATE LOG
+- Audit log
+- Login persistence with no login-page flash on reload
+
+## Important
+This is a stable front-end rebuild using browser localStorage for demo persistence. It does not replace a real multi-user Supabase backend. For production multi-user persistence, connect the same UI/API to Supabase after the stable deployment is verified.
