@@ -591,7 +591,8 @@ let httpServer=null;
 async function startServer(){
   if(httpServer) return httpServer;
   httpServer=await new Promise((resolve,reject)=>{
-    const srv=app.listen({port:Number(PORT),host:'0.0.0.0',reusePort:true},()=>resolve(srv));
+    const srv=app.get('/api/me',auth,(req,res)=>{res.setHeader('Cache-Control','no-store');res.json({ok:true,account:req.account})});
+app.listen({port:Number(PORT),host:'0.0.0.0',reusePort:true},()=>resolve(srv));
     srv.once('error',reject);
   });
   httpServer.keepAliveTimeout=120000;
