@@ -10,7 +10,7 @@ body{overflow-x:hidden}.hidden{display:none!important}
 button{border:1px solid #294f7e;background:#102947;color:#eaf3ff;border-radius:9px;padding:9px 12px;cursor:pointer}
 button:hover{background:#16385e}button:disabled{opacity:.5;cursor:not-allowed}
 input,textarea,select{background:#08192d;color:white;border:1px solid #315b8d;border-radius:9px;padding:10px;width:100%}
-#boot{position:fixed;inset:0;background:#07101f;z-index:99999}
+#boot{position:fixed;inset:0;background:#07101f;z-index:99999;display:flex;align-items:center;justify-content:center}\n.bootCard{background:#0b1e35;border:1px solid #3975ad;border-radius:14px;padding:22px 28px;text-align:center;box-shadow:0 10px 40px #0008}.bootCard b{display:block;font-size:20px;color:#65b2ff}.bootCard span{display:block;margin-top:7px;color:#91a9c3;font-size:13px}
 #app{min-height:100vh}.top{position:sticky;top:0;z-index:50;height:66px;background:#0b1a2f;border-bottom:1px solid #21436c;display:flex;align-items:center;padding:0 16px;gap:10px}
 .logo{font-weight:800;color:#55aaff;font-size:18px}.currency{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
 .cur{background:#0e2745;border:1px solid #285789;border-radius:999px;padding:7px 10px;font-weight:700;font-size:13px}
@@ -25,11 +25,11 @@ input,textarea,select{background:#08192d;color:white;border:1px solid #315b8d;bo
 .modalbox .x{float:right}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{padding:12px 5px;text-align:center;background:#102947;border-radius:9px}
 .pet{border:1px solid #2c5e8f;border-radius:12px;padding:12px}.rarity{font-size:12px;color:#7dc2ff}
 @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar,.right{display:none}.currency{margin-left:0}.top{height:auto;min-height:66px;flex-wrap:wrap}}
-html.auth-boot #login{visibility:hidden}
+html.auth-boot #login{z-index:100001;visibility:hidden}
 </style>
 </head>
 <body>
-<div id="boot"></div>
+<div id="boot"><div class="bootCard"><b>Loading LCA…</b><span>Checking your session</span></div></div>
 
 <div id="login" class="modal">
  <div class="modalbox">
@@ -99,6 +99,22 @@ html.auth-boot #login{visibility:hidden}
 <div id="modal" class="modal hidden"><div class="modalbox"><button class="x" onclick="closeModal()">✕</button><div id="modalContent"></div></div></div>
 
 <script>
+window.addEventListener("error", function () {
+  const boot = document.getElementById("boot");
+  const login = document.getElementById("login");
+  const app = document.getElementById("app");
+  if (boot) boot.classList.add("hidden");
+  if (app) app.classList.add("hidden");
+  if (login) login.classList.remove("hidden");
+});
+window.addEventListener("unhandledrejection", function () {
+  const boot = document.getElementById("boot");
+  const login = document.getElementById("login");
+  const app = document.getElementById("app");
+  if (boot) boot.classList.add("hidden");
+  if (app) app.classList.add("hidden");
+  if (login) login.classList.remove("hidden");
+});
 let token="",account=null;
 const $=id=>document.getElementById(id);
 function showApp(){ $("login").classList.add("hidden"); $("app").classList.remove("hidden"); $("boot").classList.add("hidden"); document.documentElement.classList.remove("auth-boot"); render(); }
@@ -118,6 +134,7 @@ async function restore(){
  document.documentElement.classList.add("auth-boot");
  const saved=localStorage.getItem("lca_token");
  if(!saved){showLogin();return}
+
  token=saved;
  try{const d=await api("/api/me");account=d.account;saveSession();showApp()}
  catch(e){clearSession();showLogin()}
@@ -152,6 +169,7 @@ function sendDemo(){const v=$("msg").value.trim();if(!v)return; $("msg").value="
 setInterval(async()=>{if(!token)return;try{const d=await api("/api/currency");account.time=d.time;account.diamonds=d.diamonds;account.ownerTokens=d.ownerTokens;account.points=d.points;render()}catch(e){}},30000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&token)api("/api/activity").then(d=>{account=d.account;saveSession();render()}).catch(()=>{})});
 restore();
+setTimeout(()=>{ if(!$("app").classList.contains("hidden") || !$("login").classList.contains("hidden")) return; showLogin(); }, 5000);
 </script>
 </body>
 </html>

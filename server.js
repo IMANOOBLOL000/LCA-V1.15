@@ -251,10 +251,17 @@ const rootIndex = path.join(__dirname, "index.html");
 if (fs.existsSync(publicDir)) app.use(express.static(publicDir));
 app.use(express.static(__dirname));
 
-app.get("*",(req,res)=>{
+app.get("/",(req,res)=>{
   if (fs.existsSync(publicIndex)) return res.sendFile(publicIndex);
   if (fs.existsSync(rootIndex)) return res.sendFile(rootIndex);
   return res.status(500).send("LCA frontend is missing. Upload index.html with server.js.");
+});
+
+app.get("*",(req,res)=>{
+  if (req.path.startsWith("/api/")) return res.status(404).json({error:"NOT_FOUND"});
+  if (fs.existsSync(publicIndex)) return res.sendFile(publicIndex);
+  if (fs.existsSync(rootIndex)) return res.sendFile(rootIndex);
+  return res.status(500).send("LCA frontend is missing.");
 });
 
 let server;

@@ -1,24 +1,17 @@
-# LCA v1.16 — Clean Rebuild
+# LCA v1.16.1 — Blank Screen / Render Fix
 
-This is a clean rebuild of the LCA app foundation.
+Upload the contents of this folder to the root of the Render/GitHub project.
 
-## Deployment
-Build command:
-`npm install`
+Required files:
+- server.js
+- package.json
+- index.html
+- public/index.html
 
-Start command:
-`npm start`
+Render:
+- Build Command: npm install
+- Start Command: node server.js
 
-The app listens on Render's `PORT` and `0.0.0.0`.
-
-## Authentication
-Sessions are restored before the login UI is shown, preventing a login flash on reload.
-
-## Currency
-- 1 active minute = 1 Time
-- 5 Time = 1 Diamond
-- 10 Time = 1 Owner Token
-- Owner can grant unlimited Time, Points, Diamonds, and Owner Tokens.
-- Blank grant username means the Owner's own account.
-
-No `data.json` is required by this rebuild.
+The server listens on process.env.PORT and 0.0.0.0.
+The frontend is served from either /public/index.html or the root index.html.
+A JavaScript failure can no longer leave a completely blank loading screen.
