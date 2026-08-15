@@ -1,45 +1,48 @@
-# LCA — Lucien's Chatting App (Stable Rebuild)
+# LCA v1.18 — Stable Old-Design Fix
 
-This build is the stable LCA feature-pack rebuild with the previous LCA-style layout and the requested major features, including:
+This build keeps the classic LCA layout (Servers / Social / Shops / Others, Home, UPDATE LOG, Rules, People panel, profile menu) and fixes the shop/currency/session problems.
 
-- Home, UPDATE LOG, and Rules
-- Servers, voice servers, friends, DMs, roles, reports, moderation, and owner controls
-- Points, Time, Diamonds, and Owner Tokens
-- Passive Time earning: 1 Time per active minute
-- Time exchange: 5 Time → 1 Diamond; 10 Time → 1 Owner Token
-- Owner-only unlimited grants for Time, Diamonds, Points, and Owner Tokens; blank username targets the owner account
-- Points Shop, Diamond Shop, Owners Shop, and PD Exchange
-- Achievements, daily rewards, daily/weekly/monthly challenges
-- Pet Marketplace and Legendary Pet Roll
-- Trading plaza/listings/bidding
-- Polls, voice record / voice-to-text UI, message reactions/replies/bookmarks, search, reminders, scheduled messages, and more
-- Supabase persistence when the Render environment variables are configured
-
-## Render settings
+## Render
 
 **Build Command**
+
 ```text
 npm install
 ```
 
 **Start Command**
+
 ```text
 node server.js
 ```
 
-No `public/` folder is required. `index.html` is intentionally at the repository root and `server.js` serves it directly.
+The app listens on Render's `PORT` and `0.0.0.0`.
 
-## Important deployment fix
+## Important fixes
 
-The stable server does **not** use the Express wildcard route `app.get("*")`. That route can trigger the `path-to-regexp` error shown by Render (`Missing parameter name at index 1: *`) with newer Express/path-to-regexp combinations. Static files are served from the repository root instead.
+- Classic LCA design restored.
+- No `public/` folder is required.
+- No `data.json` is included in this download.
+- Supabase-backed state/session persistence remains supported through the existing environment variables.
+- Login/session restoration retries before showing the login screen.
+- Login screen is hidden during startup so a normal reload does not flash the login page.
+- Currency bar shows Points, Time, Owner Tokens, Diamonds, plus a currency help button.
+- Passive Time: 1 Time per minute while the session is active.
+- Time → Diamond: 5 Time = 1 Diamond.
+- Time → Owner Token: 10 Time = 1 Owner Token.
+- Owner can grant Time, Points, Diamonds, and Owner Tokens; blank target means the owner account.
+- Shops are separated into Points Shop, Diamond Shop, Owners Shop, and PD Exchange.
+- Owners Shop has real Buy & Grant buttons for MOD, ADMIN, SERVER ADMIN, and SERVER OWNER licenses.
+- Server creators remain server owners for their own server.
+- Existing Rules, UPDATE LOG, reports, moderation, profile, friends, server, and chat features remain in the classic interface.
 
-## Supabase environment variables
+## Environment
 
-Set these in Render if using Supabase persistence:
+For persistent production state, keep the same Supabase environment variables already used by the LCA service:
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `OWNER_USERNAME` (optional; defaults to `CEOIMANOOB`)
 - `OWNER_PASSWORD` (optional; defaults to the existing owner password)
 
-Do not upload `node_modules` or `data.json` with this ZIP.
+If Supabase is not configured, the server can use its hidden local `.lca-db.json` fallback. That file is created automatically and is intentionally not included in the ZIP.
