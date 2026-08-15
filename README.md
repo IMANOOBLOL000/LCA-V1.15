@@ -1,48 +1,41 @@
-# LCA v1.18 — Stable Old-Design Fix
+# LCA v1.19 — Classic Full Feature Build
 
-This build keeps the classic LCA layout (Servers / Social / Shops / Others, Home, UPDATE LOG, Rules, People panel, profile menu) and fixes the shop/currency/session problems.
+This build keeps the classic LCA layout and restores the full feature pack while fixing the authentication bug that caused feature buttons to say “Please log in again.”
+
+## Included
+- Classic LCA chat layout, Home, UPDATE LOG, Rules, servers, friends, profiles, reports, moderation and owner tools
+- Persistent session restoration without a login-page flash on reload
+- 100 achievements with badges and categories
+- Daily Rewards calendar
+- 100 daily + 100 weekly + 100 monthly rotating challenges
+- Mic options: Voice Record and Voice-to-Text
+- Scheduled messages, drafts, reminders, translation/tools already in the feature hub
+- 100-pet marketplace with 5 daily pets and six rarities
+- Pet rerolls and Legendary Pet Roll
+- Trading Plaza with selling, bidding, and direct pet trading
+- Leaderboards, levels, XP, status and following
+- Points, Time, Diamonds, Owner Tokens and currency help
+- Passive Time: 1 Time per active minute
+- 5 Time = 1 Diamond
+- 10 Time = 1 Owner Token
+- Owner-only unlimited grants; blank username means yourself
+- Server Owner rank system and saved rank licenses
+- Clean Points Shop, Diamond Shop and Owners Shop
 
 ## Render
+Build Command:
+`npm install`
 
-**Build Command**
+Start Command:
+`node server.js`
 
-```text
-npm install
-```
+No `public/` folder is required. No `data.json` file is included in the ZIP.
 
-**Start Command**
-
-```text
-node server.js
-```
-
-The app listens on Render's `PORT` and `0.0.0.0`.
-
-## Important fixes
-
-- Classic LCA design restored.
-- No `public/` folder is required.
-- No `data.json` is included in this download.
-- Supabase-backed state/session persistence remains supported through the existing environment variables.
-- Login/session restoration retries before showing the login screen.
-- Login screen is hidden during startup so a normal reload does not flash the login page.
-- Currency bar shows Points, Time, Owner Tokens, Diamonds, plus a currency help button.
-- Passive Time: 1 Time per minute while the session is active.
-- Time → Diamond: 5 Time = 1 Diamond.
-- Time → Owner Token: 10 Time = 1 Owner Token.
-- Owner can grant Time, Points, Diamonds, and Owner Tokens; blank target means the owner account.
-- Shops are separated into Points Shop, Diamond Shop, Owners Shop, and PD Exchange.
-- Owners Shop has real Buy & Grant buttons for MOD, ADMIN, SERVER ADMIN, and SERVER OWNER licenses.
-- Server creators remain server owners for their own server.
-- Existing Rules, UPDATE LOG, reports, moderation, profile, friends, server, and chat features remain in the classic interface.
-
-## Environment
-
-For persistent production state, keep the same Supabase environment variables already used by the LCA service:
-
+## Supabase
+Set these Render environment variables if using Supabase persistence:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `OWNER_USERNAME` (optional; defaults to `CEOIMANOOB`)
 - `OWNER_PASSWORD` (optional; defaults to the existing owner password)
 
-If Supabase is not configured, the server can use its hidden local `.lca-db.json` fallback. That file is created automatically and is intentionally not included in the ZIP.
+The app stores its complete state in the `lca_state` table/row used by the existing LCA setup.
