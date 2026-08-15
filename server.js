@@ -242,8 +242,20 @@ app.get("/api/features",auth,(req,res)=>res.json({
 
 // ---------- Static ----------
 app.get("/health",(req,res)=>res.json({ok:true}));
-app.use(express.static(path.join(__dirname,"public")));
-app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
+const fs = require("fs");
+const publicDir = path.join(__dirname, "public");
+const publicIndex = path.join(publicDir, "index.html");
+const rootIndex = path.join(__dirname, "index.html");
+
+// Serve either layout so Render uploads that flatten folders still work.
+if (fs.existsSync(publicDir)) app.use(express.static(publicDir));
+app.use(express.static(__dirname));
+
+app.get("*",(req,res)=>{
+  if (fs.existsSync(publicIndex)) return res.sendFile(publicIndex);
+  if (fs.existsSync(rootIndex)) return res.sendFile(rootIndex);
+  return res.status(500).send("LCA frontend is missing. Upload index.html with server.js.");
+});
 
 let server;
 function start(){
