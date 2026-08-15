@@ -122,7 +122,53 @@ body[class*="bg-"]::before{content:"";position:fixed;inset:0;pointer-events:none
 .currencyHelpCard{border:1px solid #334b67;border-radius:12px;padding:11px;background:#101d2d}
 .currencyHelpCard b{display:block;margin-bottom:4px}
 </style>
-<style id="lca-feature-pack-style">.featureHubGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.featureCard{background:#0e1b2d;border:1px solid #29405e;border-radius:14px;padding:14px}.featureCard h3{margin:0 0 7px}.featureBar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.featureCalendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.featureDay{min-height:58px;border:1px solid #29405e;border-radius:10px;padding:8px;background:#0b1727;text-align:center}.featureDay.claimed{background:#17375c}.featureDay.available{box-shadow:0 0 0 2px #f4b942 inset}.featurePet{border:1px solid #29405e;border-radius:12px;padding:12px;background:#0b1727}.featurePet.common{border-color:#7b8794}.featurePet.uncommon{border-color:#55b86a}.featurePet.rare{border-color:#5c9cff}.featurePet.epic{border-color:#b35cff}.featurePet.legendary{border-color:#ffbd3d}.featurePet.god{border-color:#ff5c8a}.featureModalScroll{max-height:75vh;overflow:auto;padding-right:5px}</style></head>
+<style id="lca-feature-pack-style">.featureHubGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.featureCard{background:#0e1b2d;border:1px solid #29405e;border-radius:14px;padding:14px}.featureCard h3{margin:0 0 7px}.featureBar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.featureCalendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.featureDay{min-height:58px;border:1px solid #29405e;border-radius:10px;padding:8px;background:#0b1727;text-align:center}.featureDay.claimed{background:#17375c}.featureDay.available{box-shadow:0 0 0 2px #f4b942 inset}.featurePet{border:1px solid #29405e;border-radius:12px;padding:12px;background:#0b1727}.featurePet.common{border-color:#7b8794}.featurePet.uncommon{border-color:#55b86a}.featurePet.rare{border-color:#5c9cff}.featurePet.epic{border-color:#b35cff}.featurePet.legendary{border-color:#ffbd3d}.featurePet.god{border-color:#ff5c8a}.featureModalScroll{max-height:75vh;overflow:auto;padding-right:5px}</style>
+<script id="lca-auth-reload-fix">
+(function(){
+  const LOGIN_KEYS=['lca_token','token','authToken'];
+  const USER_KEYS=['lca_account','account','currentAccount'];
+  function getStored(keys){
+    for(const k of keys){
+      const v=localStorage.getItem(k)||sessionStorage.getItem(k);
+      if(v)return v;
+    }
+    return null;
+  }
+  window.__lcaSessionToken=getStored(LOGIN_KEYS);
+  window.__lcaSessionAccount=getStored(USER_KEYS);
+
+  // Keep the login UI hidden until session restoration finishes.
+  document.documentElement.classList.add('lca-auth-booting');
+  const style=document.createElement('style');
+  style.textContent='.lca-auth-booting #login,.lca-auth-booting .login-screen{visibility:hidden!important;opacity:0!important}.lca-auth-ready #login,.lca-auth-ready .login-screen{visibility:visible}';
+  (document.head||document.documentElement).appendChild(style);
+
+  async function restore(){
+    try{
+      if(window.__lcaSessionToken){
+        const r=await fetch('/api/me',{headers:{Authorization:'Bearer '+window.__lcaSessionToken}});
+        if(r.ok){
+          const d=await r.json();
+          window.token=window.__lcaSessionToken;
+          window.account=d.account||d.user||window.account;
+          if(window.account){
+            localStorage.setItem('lca_token',window.token);
+            localStorage.setItem('lca_account',JSON.stringify(window.account));
+            document.documentElement.classList.add('lca-auth-ready');
+            if(typeof render==='function')render();
+            return;
+          }
+        }
+      }
+    }catch(e){}
+    document.documentElement.classList.add('lca-auth-ready');
+  }
+  window.__lcaRestoreSession=restore;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',restore,{once:true});
+  else restore();
+})();
+</script>
+</head>
 <body>
 <section id="auth">
   <div class="authCard">
@@ -973,6 +1019,29 @@ F.bid=async(id,b)=>{try{await api('/api/features/trading/bid',{method:'POST',bod
 F.leaderboards=async()=>{try{const d=await api('/api/features/leaderboard');show('🏆 Leaderboards',Object.entries(d).map(([k,a])=>`<h3>${k}</h3><div class="featureHubGrid">${a.slice(0,10).map((x,i)=>`<div class="featureCard"><b>#${i+1} ${esc(x.name||x.username)}</b><div>${x[k]??0}</div></div>`).join('')}</div>`).join(''))}catch(e){toast(e.message)}};
 window.LCAFeaturePack=F;
 })();
+</script>
+
+<script id="lca-feature-auth-guard">
+window.ensureLCAAuth=async function(){
+  if(window.token && window.account)return true;
+  if(window.__lcaRestoreSession){
+    await window.__lcaRestoreSession();
+    if(window.token && window.account)return true;
+  }
+  return false;
+};
+document.addEventListener('click',async function(e){
+  const b=e.target.closest('button,[data-feature]');
+  if(!b)return;
+  const t=(b.textContent||'').toLowerCase();
+  const feature=/achievement|daily|challenge|pet|trading|thread|schedule|draft|translate|remind|status|follow|audit|level|leaderboard|reward/.test(t);
+  if(feature && !window.token){
+    e.preventDefault();
+    const ok=await window.ensureLCAAuth();
+    if(!ok) return;
+    b.click();
+  }
+},true);
 </script>
 </body>
 </html>
