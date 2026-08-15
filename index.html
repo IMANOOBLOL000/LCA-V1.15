@@ -1,175 +1,43 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lucien's Chatting App</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#07101f;color:#eaf3ff}
-body{overflow-x:hidden}.hidden{display:none!important}
-button{border:1px solid #294f7e;background:#102947;color:#eaf3ff;border-radius:9px;padding:9px 12px;cursor:pointer}
-button:hover{background:#16385e}button:disabled{opacity:.5;cursor:not-allowed}
-input,textarea,select{background:#08192d;color:white;border:1px solid #315b8d;border-radius:9px;padding:10px;width:100%}
-#boot{position:fixed;inset:0;background:#07101f;z-index:99999;display:flex;align-items:center;justify-content:center}\n.bootCard{background:#0b1e35;border:1px solid #3975ad;border-radius:14px;padding:22px 28px;text-align:center;box-shadow:0 10px 40px #0008}.bootCard b{display:block;font-size:20px;color:#65b2ff}.bootCard span{display:block;margin-top:7px;color:#91a9c3;font-size:13px}
-#app{min-height:100vh}.top{position:sticky;top:0;z-index:50;height:66px;background:#0b1a2f;border-bottom:1px solid #21436c;display:flex;align-items:center;padding:0 16px;gap:10px}
-.logo{font-weight:800;color:#55aaff;font-size:18px}.currency{margin-left:auto;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
-.cur{background:#0e2745;border:1px solid #285789;border-radius:999px;padding:7px 10px;font-weight:700;font-size:13px}
-.layout{display:grid;grid-template-columns:235px 1fr 230px;min-height:calc(100vh - 66px)}
-.sidebar,.right{background:#09182a;border-right:1px solid #1d3c60;padding:12px;overflow:auto}.right{border-right:0;border-left:1px solid #1d3c60}
-.main{padding:18px;overflow:auto}.category{margin-bottom:16px}.category h3{font-size:11px;color:#76a9d9;letter-spacing:1px;margin:7px 4px}.category button{width:100%;margin:3px 0;text-align:left}
-.card{background:#0b1e35;border:1px solid #22466f;border-radius:14px;padding:16px;margin-bottom:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
-.feature-card{min-height:110px}.muted{color:#91a9c3;font-size:13px}.welcome{font-size:20px;font-weight:800;color:#65b2ff}
-.modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
-.modalbox{width:min(700px,95vw);max-height:90vh;overflow:auto;background:#0b1e35;border:1px solid #3975ad;border-radius:16px;padding:20px}
-.modalbox .x{float:right}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{padding:12px 5px;text-align:center;background:#102947;border-radius:9px}
-.pet{border:1px solid #2c5e8f;border-radius:12px;padding:12px}.rarity{font-size:12px;color:#7dc2ff}
-@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar,.right{display:none}.currency{margin-left:0}.top{height:auto;min-height:66px;flex-wrap:wrap}}
-html.auth-boot #login{z-index:100001;visibility:hidden}
-</style>
-</head>
-<body>
-<div id="boot"><div class="bootCard"><b>Loading LCA…</b><span>Checking your session</span></div></div>
-
-<div id="login" class="modal">
- <div class="modalbox">
-  <h1>Welcome to LCA</h1><p class="muted">Log in or create your account.</p>
-  <input id="loginUser" placeholder="Username" autocomplete="username">
-  <br><br><input id="loginPass" type="password" placeholder="Password" autocomplete="current-password">
-  <br><br><button onclick="login()">Log In / Create Account</button>
-  <p id="loginMsg" class="muted"></p>
- </div>
-</div>
-
-<div id="app" class="hidden">
-<header class="top">
- <div class="logo">LUCIEN'S CHATTING APP</div>
- <div class="currency">
-  <span class="cur">⭐ <span id="points">0</span></span>
-  <span class="cur">⏱️ <span id="time">0</span></span>
-  <span class="cur">🪙 <span id="tokens">0</span></span>
-  <span class="cur">💎 <span id="diamonds">0</span></span>
- </div>
- <button onclick="logout()">Log Out</button>
-</header>
-
-<div class="layout">
-<aside class="sidebar">
- <div class="category"><h3>SOCIAL</h3>
-  <button onclick="feature('Custom Status','Set your status.')">👤 Custom Status</button>
-  <button onclick="feature('Follow System','Follow users without becoming friends.')">➕ Follow System</button>
-  <button onclick="feature('Achievements','100 achievements sorted into categories.')">🏆 Achievements</button>
- </div>
- <div class="category"><h3>OTHERS</h3>
-  <button onclick="feature('Threads','Start conversations under messages.')">🧵 Message Threads</button>
-  <button onclick="feature('Scheduled Messages','Schedule messages.')">🗓️ Scheduled Messages</button>
-  <button onclick="feature('Drafts','Your unfinished messages are saved.')">📝 Drafts</button>
-  <button onclick="feature('Translation','Translate messages.')">🌎 Translation</button>
-  <button onclick="feature('Reminders','Set message reminders.')">🔔 Reminders</button>
-  <button onclick="feature('Audit Log','See important server actions.')">📜 Server Audit Log</button>
-  <button onclick="feature('Levels','Earn XP and level up.')">📈 Levels</button>
-  <button onclick="feature('Leaderboards','Compare activity.')">🏅 Leaderboards</button>
- </div>
- <div class="category"><h3>SHOPS</h3>
-  <button onclick="feature('Points Shop','Spend Points.')">⭐ Points Shop</button>
-  <button onclick="feature('Diamond Shop','Spend Diamonds.')">💎 Diamond Shop</button>
-  <button onclick="feature('Owners Shop','Spend Owner Tokens.')">🪙 Owners Shop</button>
-  <button onclick="pdExchange()">🔄 PD Exchange</button>
-  <button onclick="feature('Pet Marketplace','Buy pets.')">🐾 Pet Marketplace</button>
- </div>
-</aside>
-
-<main class="main">
- <div class="card"><div class="welcome">Warm server welcome 👋</div>
- <p>Welcome to Lucien's Chatting App! Chat with friends, earn currencies, unlock achievements, complete challenges, collect pets, and trade.</p></div>
- <div class="grid">
-  <div class="card feature-card"><h3>🎁 Daily Rewards</h3><p class="muted">Calendar-style daily rewards.</p><button onclick="dailyRewards()">Open Calendar</button></div>
-  <div class="card feature-card"><h3>🎯 Challenges</h3><p class="muted">100 daily, weekly, and monthly challenges.</p><button onclick="challenges()">View Challenges</button></div>
-  <div class="card feature-card"><h3>🐾 Pet Marketplace</h3><p class="muted">100 pets, six rarities, rotating shop.</p><button onclick="pets()">Open Pets</button></div>
-  <div class="card feature-card"><h3>🏪 Trading Plaza</h3><p class="muted">Trade, sell, and bid.</p><button onclick="feature('Trading Plaza','Trading Plaza is ready for player trading, selling, and bidding.')">Open Plaza</button></div>
-  <div class="card feature-card"><h3>🎙️ Voice</h3><p class="muted">Choose how to use the mic.</p><button onclick="voiceOptions()">Mic Options</button></div>
- </div>
- <div class="card"><h2>Chat</h2><p class="muted">Your rebuilt LCA foundation is ready.</p><textarea id="msg" placeholder="Type a message..."></textarea><br><br><button onclick="sendDemo()">Send</button></div>
-</main>
-
-<aside class="right"><h3>ONLINE</h3><div id="profileCard" class="card"></div><div class="card"><h3>Currency Help</h3><p class="muted">1 active minute = 1 Time.</p><p class="muted">5 Time = 1 Diamond.</p><p class="muted">10 Time = 1 Owner Token.</p></div></aside>
-</div>
-</div>
-
-<div id="modal" class="modal hidden"><div class="modalbox"><button class="x" onclick="closeModal()">✕</button><div id="modalContent"></div></div></div>
-
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lucien's Chatting App</title><style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#07101f;color:#eaf3ff}body{overflow-x:hidden}.hidden{display:none!important}button{border:1px solid #315b8d;background:#102947;color:#eaf3ff;border-radius:9px;padding:9px 12px;cursor:pointer;font-size:14px}button:hover{background:#17406c}input,textarea,select{background:#08192d;color:#fff;border:1px solid #315b8d;border-radius:9px;padding:10px;width:100%}.top{position:sticky;top:0;z-index:20;background:#0b1a2f;border-bottom:1px solid #21436c;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.logo{font-weight:800;color:#65b2ff;font-size:18px}.currency{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.cur{background:#0e2745;border:1px solid #285789;border-radius:999px;padding:7px 10px;font-weight:700;font-size:13px}.layout{display:grid;grid-template-columns:245px 1fr 245px;min-height:calc(100vh - 66px)}.sidebar,.right{background:#09182a;padding:12px;overflow:auto;border-right:1px solid #1d3c60}.right{border-right:0;border-left:1px solid #1d3c60}.main{padding:18px;overflow:auto}.category{margin-bottom:18px}.category h3{font-size:11px;color:#76a9d9;letter-spacing:1px;margin:8px 4px}.category button{width:100%;margin:3px 0;text-align:left}.card{background:#0b1e35;border:1px solid #22466f;border-radius:14px;padding:16px;margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.muted{color:#91a9c3;font-size:13px}.welcome{font-size:20px;font-weight:800;color:#65b2ff}.modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:1000;padding:18px}.modalbox{width:min(760px,96vw);max-height:90vh;overflow:auto;background:#0b1e35;border:1px solid #3975ad;border-radius:16px;padding:20px;position:relative}.x{position:absolute;right:14px;top:14px}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{padding:10px 5px;text-align:center;background:#102947;border-radius:9px;min-height:60px}.shopbox,.petbox,.answer{border:1px solid #2c5e8f;border-radius:12px;padding:12px;margin:8px 0}.answer{display:flex;gap:8px;align-items:center}.answer input{flex:1}.server{display:flex;justify-content:space-between;gap:8px;align-items:center}.status{color:#5ee38a}.ownerPanel{border-color:#8a6cff}.danger{background:#7e2632;border-color:#b44b58}.success{color:#70e39a}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#102947;border:1px solid #3975ad;padding:10px 14px;border-radius:10px;z-index:2000}.error{color:#ff8d8d}@media(max-width:950px){.layout{grid-template-columns:1fr}.sidebar,.right{display:none}.currency{margin-left:0}}
+</style></head><body>
+<div id="login" class="modal"><div class="modalbox"><h1>Welcome to LCA</h1><p class="muted">Log in or create an account. Your session is restored without a login flash.</p><input id="loginUser" placeholder="Username" autocomplete="username"><br><br><input id="loginPass" type="password" placeholder="Password" autocomplete="current-password"><br><br><button id="loginBtn">Log In / Create Account</button><p id="loginMsg" class="muted"></p></div></div>
+<div id="app" class="hidden"><header class="top"><div class="logo">LCA</div><span class="muted">Lucien's Chatting App</span><div class="currency"><span class="cur">⭐ <span id="points">0</span></span><span class="cur">⏱️ <span id="time">0</span></span><span class="cur">🪙 <span id="tokens">0</span></span><span class="cur">💎 <span id="diamonds">0</span></span><button id="currencyHelp">?</button></div><button id="logoutBtn">Log Out</button></header>
+<div class="layout"><aside class="sidebar"><div class="category"><h3>SERVERS</h3><button id="createServer">＋ Create Server</button><button id="createVoice">🎙️ Create Voice Server</button><button id="joinServer">＋ Join Server</button><div id="serverList"></div></div><div class="category"><h3>SOCIAL</h3><button data-feature="Friends">👥 Friends</button><button data-feature="Achievements">🏆 Achievements</button><button data-feature="Daily Rewards">🎁 Daily Rewards</button><button data-feature="Challenges">🎯 Challenges</button></div><div class="category"><h3>OTHERS</h3><button data-feature="Message Threads">🧵 Message Threads</button><button data-feature="Scheduled Messages">🗓️ Scheduled Messages</button><button data-feature="Drafts">📝 Drafts</button><button data-feature="Translation">🌎 Translation</button><button data-feature="Reminders">🔔 Reminders</button><button data-feature="Audit Log">📜 Server Audit Log</button><button data-feature="Levels">📈 Levels</button><button data-feature="Leaderboards">🏅 Leaderboards</button><button data-feature="Trading Plaza">🏪 Trading Plaza</button><button data-feature="Voice Options">🎙️ Voice Options</button></div><div class="category"><h3>SHOPS</h3><button id="pointsShop">⭐ Points Shop</button><button id="diamondShop">💎 Diamond Shop</button><button id="ownerShop">🪙 Owners Shop</button><button id="pdExchange">🔄 PD Exchange</button><button id="petMarketplace">🐾 Pet Marketplace</button></div><div class="category" id="ownerCategory"></div></aside>
+<main class="main"><div class="card"><div class="welcome">👋 Welcome to LCA!</div><p class="muted">Chat with friends, create servers, earn Time by staying active, exchange Time for Diamonds or Owner Tokens, unlock achievements, complete challenges, collect pets, and use the shops.</p></div><div class="grid"><div class="card"><h3>🎁 Daily Rewards</h3><button data-feature="Daily Rewards">Open Calendar</button></div><div class="card"><h3>🎯 Challenges</h3><button data-feature="Challenges">Open Challenges</button></div><div class="card"><h3>🐾 Pet Marketplace</h3><button id="petMarketplace2">Open Pets</button></div><div class="card"><h3>📊 Polls</h3><button id="pollsBtn">Create / Vote Polls</button></div><div class="card"><h3>🎙️ Mic</h3><button id="voiceBtn">Voice Record / Voice-to-Text</button></div></div><div class="card"><h2>Chat</h2><textarea id="message" placeholder="Type a message..."></textarea><br><br><button id="sendBtn">Send</button></div><div id="ownerPanel"></div></main>
+<aside class="right"><h3>ONLINE</h3><div id="profile" class="card"></div><div class="card"><h3>Currency Help</h3><p class="muted">⏱️ Time: 1 Time per active minute.</p><p class="muted">💎 Diamond: 5 Time = 1 Diamond.</p><p class="muted">🪙 Owner Token: 10 Time = 1 Owner Token.</p><p class="muted">Owner can grant all four currencies with no owner-account limit.</p></div></aside></div></div>
+<div id="modal" class="modal hidden"><div class="modalbox"><button class="x" id="closeModal">✕</button><div id="modalContent"></div></div></div><div id="toast" class="toast hidden"></div>
 <script>
-window.addEventListener("error", function () {
-  const boot = document.getElementById("boot");
-  const login = document.getElementById("login");
-  const app = document.getElementById("app");
-  if (boot) boot.classList.add("hidden");
-  if (app) app.classList.add("hidden");
-  if (login) login.classList.remove("hidden");
-});
-window.addEventListener("unhandledrejection", function () {
-  const boot = document.getElementById("boot");
-  const login = document.getElementById("login");
-  const app = document.getElementById("app");
-  if (boot) boot.classList.add("hidden");
-  if (app) app.classList.add("hidden");
-  if (login) login.classList.remove("hidden");
-});
-let token="",account=null;
-const $=id=>document.getElementById(id);
-function showApp(){ $("login").classList.add("hidden"); $("app").classList.remove("hidden"); $("boot").classList.add("hidden"); document.documentElement.classList.remove("auth-boot"); render(); }
-function showLogin(){ $("app").classList.add("hidden"); $("login").classList.remove("hidden"); $("boot").classList.add("hidden"); }
-function saveSession(){localStorage.setItem("lca_token",token);localStorage.setItem("lca_account",JSON.stringify(account));}
-function clearSession(){localStorage.removeItem("lca_token");localStorage.removeItem("lca_account");sessionStorage.removeItem("lca_token");}
-async function api(url,opt={}){
- opt.headers={...(opt.headers||{}),...(token?{Authorization:"Bearer "+token}:{})};
- opt.credentials="same-origin";
- const r=await fetch(url,opt);
- const d=await r.json().catch(()=>({}));
- if(r.status===401){clearSession();token="";account=null;showLogin();throw new Error("SESSION_EXPIRED")}
- if(!r.ok)throw new Error(d.error||"Request failed");
- return d;
-}
-async function restore(){
- document.documentElement.classList.add("auth-boot");
- const saved=localStorage.getItem("lca_token");
- if(!saved){showLogin();return}
-
- token=saved;
- try{const d=await api("/api/me");account=d.account;saveSession();showApp()}
- catch(e){clearSession();showLogin()}
-}
-async function login(){
- $("loginMsg").textContent="Signing in...";
- try{
-  const d=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("loginUser").value,password:$("loginPass").value})}).then(async r=>{const x=await r.json();if(!r.ok)throw new Error(x.error||"Login failed");return x});
-  token=d.token;account=d.account;saveSession();showApp();
- }catch(e){$("loginMsg").textContent=e.message}
-}
-async function logout(){try{await api("/api/logout",{method:"POST"})}catch(e){}clearSession();token="";account=null;showLogin()}
-function render(){
- $("points").textContent=Number(account?.points||0).toLocaleString();
- $("time").textContent=Number(account?.time||0).toLocaleString();
- $("tokens").textContent=Number(account?.ownerTokens||0).toLocaleString();
- $("diamonds").textContent=Number(account?.diamonds||0).toLocaleString();
- $("profileCard").innerHTML="<b>"+escapeHtml(account?.displayName||account?.username||"")+"</b><br><span class='muted'>"+escapeHtml(account?.role||"member")+"</span>";
-}
-function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function closeModal(){$("modal").classList.add("hidden")}
-function openModal(title,body){$("modalContent").innerHTML="<h2>"+escapeHtml(title)+"</h2>"+body;$("modal").classList.remove("hidden")}
-function feature(title,body){if(!token||!account)return;openModal(title,"<p>"+escapeHtml(body)+"</p>")}
-async function dailyRewards(){try{const d=await api("/api/daily-rewards");openModal("Daily Rewards",'<div class="calendar">'+d.rewards.map(x=>`<div class="day"><b>${x.day}</b><br>⭐${x.reward.points}<br>⏱️${x.reward.time}</div>`).join("")+"</div>")}catch(e){}}
-async function challenges(){try{const d=await api("/api/challenges");openModal("Challenges",["daily","weekly","monthly"].map(k=>"<h3>"+k.toUpperCase()+"</h3>"+d[k].map(x=>`<div class="card"><b>${escapeHtml(x.title)}</b><p>${escapeHtml(x.description)}</p><span>⭐${x.reward.points} ⏱️${x.reward.time}</span></div>`).join("")).join(""))}catch(e){}}
-async function pets(){try{const d=await api("/api/pets");openModal("Pet Marketplace",d.pets.map(p=>`<div class="pet"><b>${escapeHtml(p.name)}</b><div class="rarity">${escapeHtml(p.rarity)}</div><p>🪙 ${p.ownerTokens} OR 💎 ${p.diamonds}</p><button onclick="buyPet('${p.id}','ownerTokens')">Buy with Tokens</button> <button onclick="buyPet('${p.id}','diamonds')">Buy with Diamonds</button></div>`).join(""))}catch(e){}}
-async function buyPet(id,currency){try{const d=await api("/api/pets/buy",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({petId:id,currency})});account=d.account;saveSession();render();pets()}catch(e){alert(e.message)}}
-function pdExchange(){openModal("PD Exchange","<p>⏱️ <b>5 Time → 1 Diamond</b></p><p>⏱️ <b>10 Time → 1 Owner Token</b></p><button onclick='exchange(1,\"diamond\")'>Exchange 5 Time → 1 Diamond</button> <button onclick='exchange(1,\"token\")'>Exchange 10 Time → 1 Owner Token</button>")}
-async function exchange(amount,type){try{const d=await api(type==="diamond"?"/api/exchange/time-diamond":"/api/exchange/time-owner-token",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({amount})});account=d.account;saveSession();render();pdExchange()}catch(e){alert(e.message)}}
-function voiceOptions(){openModal("Mic Options","<p><button onclick='feature(\"Voice Record\",\"Record and send a voice message.\")'>🎙️ Voice Record</button></p><p><button onclick='feature(\"Voice to Text\",\"Speak and convert your voice into text.\")'>🗣️ Voice → Text</button></p>")}
-function sendDemo(){const v=$("msg").value.trim();if(!v)return; $("msg").value="";alert("Message sent.")}
-setInterval(async()=>{if(!token)return;try{const d=await api("/api/currency");account.time=d.time;account.diamonds=d.diamonds;account.ownerTokens=d.ownerTokens;account.points=d.points;render()}catch(e){}},30000);
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&token)api("/api/activity").then(d=>{account=d.account;saveSession();render()}).catch(()=>{})});
-restore();
-setTimeout(()=>{ if(!$("app").classList.contains("hidden") || !$("login").classList.contains("hidden")) return; showLogin(); }, 5000);
-</script>
-</body>
-</html>
+let token=localStorage.getItem('lca_token')||'',account=null,booting=true;
+const $=id=>document.getElementById(id);const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function toast(m){$('toast').textContent=m;$('toast').classList.remove('hidden');clearTimeout(window._toast);window._toast=setTimeout(()=>$('toast').classList.add('hidden'),2200)}
+function openModal(title,html){$('modalContent').innerHTML='<h2>'+esc(title)+'</h2>'+html;$('modal').classList.remove('hidden')}
+function closeModal(){$('modal').classList.add('hidden')}
+async function api(url,opt={}){opt.headers={...(opt.headers||{}),...(token?{Authorization:'Bearer '+token}:{})};opt.credentials='same-origin';const r=await fetch(url,opt);const d=await r.json().catch(()=>({}));if(r.status===401){localStorage.removeItem('lca_token');token='';account=null;showLogin('Please log in again.');throw Error('AUTH_REQUIRED')}if(!r.ok)throw Error(d.error||'Request failed');return d}
+function showLogin(msg=''){ $('app').classList.add('hidden');$('login').classList.remove('hidden');$('loginMsg').textContent=msg }
+function showApp(){ $('login').classList.add('hidden');$('app').classList.remove('hidden');render() }
+function render(){if(!account)return;$('points').textContent=Number(account.points||0).toLocaleString();$('time').textContent=Number(account.time||0).toLocaleString();$('tokens').textContent=Number(account.ownerTokens||0).toLocaleString();$('diamonds').textContent=Number(account.diamonds||0).toLocaleString();$('profile').innerHTML='<b>'+esc(account.displayName)+'</b><br><span class="status">● Online</span><br><span class="muted">Role: '+esc(account.role)+'</span>';renderServers();renderOwnerPanel()}
+function renderServers(){const el=$('serverList');el.innerHTML=(account.servers||[]).map(id=>'<div class="muted">Server '+esc(id.slice(-6))+'</div>').join('')}
+function renderOwnerPanel(){const box=$('ownerPanel'),side=$('ownerCategory');if(account.role!=='owner'){box.innerHTML='';side.innerHTML='';return}side.innerHTML='<h3>OWNER</h3><button id="ownerPanelBtn">👑 Owner Panel</button>';box.innerHTML='<div class="card ownerPanel"><h2>👑 Owner Panel</h2><p class="muted">Owner controls stay here. Giving currencies is unlimited for the owner account. Leave username blank to give yourself.</p><div class="grid"><div><input id="grantUser" placeholder="Username (blank = yourself)"><input id="grantAmount" type="number" min="0" placeholder="Amount"><button data-grant="time">Give Time</button><button data-grant="points">Give Points</button><button data-grant="diamonds">Give Diamonds</button><button data-grant="owner-token">Give Owner Token</button></div><div><button id="newPoll">Create Poll</button><button id="ownerFeatures">Owner Features</button></div></div></div>';document.querySelectorAll('[data-grant]').forEach(b=>b.onclick=()=>grant(b.dataset.grant));$('ownerPanelBtn')?.addEventListener('click',()=>document.querySelector('.ownerPanel')?.scrollIntoView({behavior:'smooth'}));$('newPoll')?.addEventListener('click',createPoll)}
+async function refresh(){try{const d=await api('/api/me');account=d.account;localStorage.setItem('lca_account',JSON.stringify(account));showApp()}catch(e){if(localStorage.getItem('lca_account')){try{account=JSON.parse(localStorage.getItem('lca_account'));showApp();const d=await api('/api/me');account=d.account;render()}catch{showLogin('Session expired.')}}else showLogin()}}
+async function login(){const u=$('loginUser').value.trim(),p=$('loginPass').value;if(!u)return $('loginMsg').textContent='Enter a username.';$('loginBtn').disabled=true;$('loginMsg').textContent='Signing in…';try{const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});const d=await r.json();if(!r.ok)throw Error(d.error||'Login failed');token=d.token;account=d.account;localStorage.setItem('lca_token',token);localStorage.setItem('lca_account',JSON.stringify(account));showApp();toast('Welcome back!')}catch(e){$('loginMsg').textContent=e.message}finally{$('loginBtn').disabled=false}}
+async function logout(){await fetch('/api/logout',{method:'POST'}).catch(()=>{});localStorage.removeItem('lca_token');localStorage.removeItem('lca_account');token='';account=null;showLogin()}
+async function grant(kind){const user=$('grantUser')?.value||'',amount=Number($('grantAmount')?.value);if(!Number.isInteger(amount)||amount<0)return toast('Enter a valid whole number.');try{const d=await api('/api/owner/give-'+kind,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,amount})});if(!user)account=d.account;render();toast('Currency granted.')}catch(e){toast(e.message)}}
+async function daily(){try{const d=await api('/api/daily-rewards');openModal('Daily Rewards','<div class="calendar">'+d.rewards.map(x=>'<div class="day"><b>Day '+x.day+'</b><br>⭐'+x.reward.points+'<br>⏱️'+x.reward.time+'</div>').join('')+'</div>')}catch(e){toast(e.message)}}
+async function challenges(){try{const d=await api('/api/challenges');openModal('Challenges',Object.keys(d).map(k=>'<h3>'+k.toUpperCase()+'</h3>'+d[k].map(x=>'<div class="card"><b>'+esc(x.title)+'</b><p>'+esc(x.description)+'</p><span>⭐'+x.reward.points+' ⏱️'+x.reward.time+'</span></div>').join('')).join(''))}catch(e){toast(e.message)}}
+async function achievements(){try{const d=await api('/api/achievements');const groups={};d.achievements.forEach(a=>(groups[a.category]??=[]).push(a));openModal('Achievements',Object.entries(groups).map(([k,v])=>'<h3>'+esc(k)+'</h3>'+v.map(a=>'<div class="shopbox"><b>'+esc(a.name)+'</b><p class="muted">'+esc(a.description)+'</p></div>').join('')).join(''))}catch(e){toast(e.message)}}
+function shops(){openModal('Shops','<div class="shopbox"><b>⭐ Points Shop</b><p>Spend Points on cosmetic upgrades.</p></div><div class="shopbox"><b>💎 Diamond Shop</b><p>Spend Diamonds on premium items.</p></div><div class="shopbox"><b>🪙 Owners Shop</b><p>Spend Owner Tokens on powerful owner-only loot.</p></div>')}
+function pd(){openModal('PD Exchange','<div class="shopbox">⏱️ 5 Time → 💎 1 Diamond<br><button id="exD">Exchange 1</button></div><div class="shopbox">⏱️ 10 Time → 🪙 1 Owner Token<br><button id="exT">Exchange 1</button></div>');$('exD').onclick=()=>exchange('diamond');$('exT').onclick=()=>exchange('token')}
+async function exchange(t){try{const d=await api('/api/exchange/time-'+(t==='diamond'?'diamond':'owner-token'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:1})});account=d.account;localStorage.setItem('lca_account',JSON.stringify(account));render();pd();toast('Exchange complete.')}catch(e){toast(e.message)}}
+async function pets(){try{const d=await api('/api/pets');openModal('Pet Marketplace',d.pets.map(p=>'<div class="petbox"><b>'+esc(p.name)+'</b> · '+esc(p.rarity)+'<p>🪙 '+p.ownerTokens+' or 💎 '+p.diamonds+'</p><button onclick="buyPet(\''+p.id+'\',\'ownerTokens\')">Buy Tokens</button> <button onclick="buyPet(\''+p.id+'\',\'diamonds\')">Buy Diamonds</button></div>').join(''))}catch(e){toast(e.message)}}
+async function buyPet(id,c){try{const d=await api('/api/pets/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({petId:id,currency:c})});account=d.account;localStorage.setItem('lca_account',JSON.stringify(account));render();pets()}catch(e){toast(e.message)}}
+async function servers(isVoice){const name=prompt(isVoice?'Voice server name':'Server name');if(!name)return;try{const d=await api('/api/servers/'+(isVoice?'create-voice':'create'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});account=d.account;localStorage.setItem('lca_account',JSON.stringify(account));render();toast(isVoice?'Voice server created!':'Server created!')}catch(e){toast(e.message)}}
+function voice(){openModal('Mic Options','<p>Choose your microphone action:</p><button id="rec">🎙️ Voice Record</button> <button id="tts">🗣️ Voice to Text</button>');$('rec').onclick=()=>{closeModal();toast('Voice recording option selected.')};$('tts').onclick=()=>{closeModal();toast('Voice-to-text option selected.')}}
+async function polls(){let d;try{d=await api('/api/polls')}catch(e){return toast(e.message)}openModal('Polls','<button id="createPoll2">＋ Create Poll</button><div id="pollList">'+d.polls.map(p=>'<div class="shopbox"><h3>'+esc(p.question)+'</h3>'+p.answers.map(a=>'<button onclick="votePoll(\''+p.id+'\',\''+esc(a).replace(/'/g,'\\\'')+'\')">'+esc(a)+'</button> ').join('')+'</div>').join('')+'</div>');$('createPoll2').onclick=createPoll}
+function createPoll(){openModal('Create Poll','<label>Question</label><input id="pq" placeholder="Your question"><div id="answers"><div class="answer"><input placeholder="Answer 1"></div><div class="answer"><input placeholder="Answer 2"></div></div><button id="addAnswer">＋ Add Answer</button> <button id="savePoll">Create</button>');$('addAnswer').onclick=()=>{$('answers').insertAdjacentHTML('beforeend','<div class="answer"><input placeholder="Another answer"></div>')};$('savePoll').onclick=async()=>{const q=$('pq').value.trim(),a=[...$('answers').querySelectorAll('input')].map(x=>x.value.trim()).filter(Boolean);try{const d=await api('/api/polls',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,answers:a})});openModal('Poll Created','<div class="shopbox"><h3>'+esc(d.poll.question)+'</h3>'+d.poll.answers.map(esc).map(x=>'<p>▢ '+x+'</p>').join('')+'</div>')}catch(e){toast(e.message)}}}
+async function votePoll(id,a){try{await api('/api/polls/'+id+'/vote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answer:a})});toast('Vote saved.');polls()}catch(e){toast(e.message)}}
+function feature(name){if(name==='Daily Rewards')return daily();if(name==='Challenges')return challenges();if(name==='Achievements')return achievements();if(name==='Pet Marketplace')return pets();if(name==='Voice Options')return voice();if(name==='Trading Plaza')return openModal('Trading Plaza','<div class="shopbox">Trade, sell, and bid features are ready for the plaza.</div>');openModal(name,'<p class="muted">'+esc(name)+' is available in the rebuilt LCA interface.</p>')}
+$('loginBtn').onclick=login;$('logoutBtn').onclick=logout;$('closeModal').onclick=closeModal;$('currencyHelp').onclick=()=>openModal('Currency Guide','<p>⏱️ Time: 1 per active minute.</p><p>💎 Diamonds: 5 Time = 1 Diamond.</p><p>🪙 Owner Tokens: 10 Time = 1 Owner Token.</p><p>👑 Owners can grant Time, Points, Diamonds, and Owner Tokens without a giving cap on the owner account.</p>');$('createServer').onclick=()=>servers(false);$('createVoice').onclick=()=>servers(true);$('pdExchange').onclick=pd;$('pointsShop').onclick=shops;$('diamondShop').onclick=shops;$('ownerShop').onclick=shops;$('petMarketplace').onclick=pets;$('petMarketplace2').onclick=pets;$('voiceBtn').onclick=voice;$('pollsBtn').onclick=polls;$('sendBtn').onclick=()=>{if($('message').value.trim()){toast('Message sent.');$('message').value=''}};document.querySelectorAll('[data-feature]').forEach(b=>b.onclick=()=>feature(b.dataset.feature));
+setInterval(async()=>{if(!token)return;try{const d=await api('/api/currency');Object.assign(account,d);localStorage.setItem('lca_account',JSON.stringify(account));render()}catch{}},15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token)api('/api/activity').then(d=>{account=d.account;localStorage.setItem('lca_account',JSON.stringify(account));render()}).catch(()=>{})});
+window.addEventListener('beforeunload',()=>{});refresh();
+</script></body></html>

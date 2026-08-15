@@ -1,6 +1,6 @@
 {
-  "name": "lca-v1-16",
-  "version": "1.16.1",
+  "name": "lca-v1-17-stable",
+  "version": "1.17.0",
   "private": true,
   "scripts": {
     "start": "node server.js"
