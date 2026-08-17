@@ -1,47 +1,31 @@
-# LCA v1.20 — Pet + Trading Upgrade
+# LCA v1.21 — Pet Market + Trading + Challenge Fix
+
+This build keeps the LCA classic dark chat layout and adds the requested pet/trading/progression fixes.
 
 ## Included
-- Classic LCA layout and existing features
-- Pet Marketplace with 100 named pets
-- 5-pet daily market
-- Reroll replaces the entire market immediately
-- Five different rarities per market refresh (no repeated rarity slots)
-- Pet names use readable names such as `Rabbit-rare`
-- Pet images are embedded as SVG data images, so no `public/` folder or external image host is required
-- Pet guide containing all 100 pets, images, values, and multipliers
-- Equip up to 3 pets
-- Point multipliers on all pet rarities
-- Diamond multipliers from Rare through GOD
-- Owner Token multipliers from Legendary through GOD
-- Legendary Pet Roll
-- Trading Plaza with two-sided offers, pet values, accept/unready, decline, requests, listings, and diamond purchases
-- Existing achievements, daily rewards, challenges, voice tools, social tools, and leaderboards
-- Existing LCA authentication/session restoration preserved
-
-## Pet rarity prices
-- Common: 3 Owner Tokens or 60 Diamonds
-- Uncommon: 5 Owner Tokens or 100 Diamonds
-- Rare: 10 Owner Tokens or 200 Diamonds
-- Epic: 25 Owner Tokens or 500 Diamonds
-- Legendary: 50 Owner Tokens or 1,000 Diamonds
-- GOD: 250 Owner Tokens or 5,000 Diamonds
-
-## Trading
-Trading uses a two-sided offer flow: both players add pets, see pet values and total offer values, then both accept. A trade only completes after both sides accept and the server verifies that every offered pet is still owned.
+- Random weighted Pet Marketplace using the requested rarity odds: Common 40%, Uncommon 30%, Rare 20%, Epic 6%, Legendary 3%, GOD 1%.
+- Five unique pets per market refresh; reroll generates a genuinely new market.
+- A pet can only be purchased/owned once.
+- 100 readable pet names such as `Rabbit-common` and `Fox-rare`.
+- Pet equip/unequip with point, diamond, and Owner Token multipliers.
+- Trading Plaza with online/offline player lists, trade requests, inventory selection, two-sided offers, values, accept/unready, selling and bidding.
+- Daily/weekly/monthly challenges with visible requirements and server-side completion checks. Monthly challenges are harder and can award Diamonds and Owner Tokens.
+- Achievement/badge requirements and server-side claim validation.
+- Daily reward calendar with a live countdown to the next reward reset.
 
 ## Render
-Build command:
-```
-npm install
-```
-Start command:
-```
-node server.js
-```
+Build command: `npm install`
+Start command: `node server.js`
 
-The project intentionally does **not** contain a `public/` folder or `data.json`. `index.html` is served directly from the repository root.
+The server binds to `0.0.0.0` and uses Render's `PORT` environment variable. Render documents these settings for Node web services.
 
-## Validation
-- `node --check server.js` passes.
-- All inline browser JavaScript blocks pass Node syntax validation.
-- No Express wildcard route is used for the static fallback, avoiding the previous `Missing parameter name at index 1: *` crash.
+## Important
+Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in Render Environment Variables for persistent production storage. Do not put the service-role key in the ZIP or frontend.
+
+## ZIP contents
+- `index.html`
+- `server.js`
+- `package.json`
+- `README.md`
+
+There is intentionally **no `public/` folder and no `data.json`** in this ZIP.
