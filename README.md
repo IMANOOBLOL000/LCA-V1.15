@@ -1,41 +1,47 @@
-# LCA v1.19 — Classic Full Feature Build
-
-This build keeps the classic LCA layout and restores the full feature pack while fixing the authentication bug that caused feature buttons to say “Please log in again.”
+# LCA v1.20 — Pet + Trading Upgrade
 
 ## Included
-- Classic LCA chat layout, Home, UPDATE LOG, Rules, servers, friends, profiles, reports, moderation and owner tools
-- Persistent session restoration without a login-page flash on reload
-- 100 achievements with badges and categories
-- Daily Rewards calendar
-- 100 daily + 100 weekly + 100 monthly rotating challenges
-- Mic options: Voice Record and Voice-to-Text
-- Scheduled messages, drafts, reminders, translation/tools already in the feature hub
-- 100-pet marketplace with 5 daily pets and six rarities
-- Pet rerolls and Legendary Pet Roll
-- Trading Plaza with selling, bidding, and direct pet trading
-- Leaderboards, levels, XP, status and following
-- Points, Time, Diamonds, Owner Tokens and currency help
-- Passive Time: 1 Time per active minute
-- 5 Time = 1 Diamond
-- 10 Time = 1 Owner Token
-- Owner-only unlimited grants; blank username means yourself
-- Server Owner rank system and saved rank licenses
-- Clean Points Shop, Diamond Shop and Owners Shop
+- Classic LCA layout and existing features
+- Pet Marketplace with 100 named pets
+- 5-pet daily market
+- Reroll replaces the entire market immediately
+- Five different rarities per market refresh (no repeated rarity slots)
+- Pet names use readable names such as `Rabbit-rare`
+- Pet images are embedded as SVG data images, so no `public/` folder or external image host is required
+- Pet guide containing all 100 pets, images, values, and multipliers
+- Equip up to 3 pets
+- Point multipliers on all pet rarities
+- Diamond multipliers from Rare through GOD
+- Owner Token multipliers from Legendary through GOD
+- Legendary Pet Roll
+- Trading Plaza with two-sided offers, pet values, accept/unready, decline, requests, listings, and diamond purchases
+- Existing achievements, daily rewards, challenges, voice tools, social tools, and leaderboards
+- Existing LCA authentication/session restoration preserved
+
+## Pet rarity prices
+- Common: 3 Owner Tokens or 60 Diamonds
+- Uncommon: 5 Owner Tokens or 100 Diamonds
+- Rare: 10 Owner Tokens or 200 Diamonds
+- Epic: 25 Owner Tokens or 500 Diamonds
+- Legendary: 50 Owner Tokens or 1,000 Diamonds
+- GOD: 250 Owner Tokens or 5,000 Diamonds
+
+## Trading
+Trading uses a two-sided offer flow: both players add pets, see pet values and total offer values, then both accept. A trade only completes after both sides accept and the server verifies that every offered pet is still owned.
 
 ## Render
-Build Command:
-`npm install`
+Build command:
+```
+npm install
+```
+Start command:
+```
+node server.js
+```
 
-Start Command:
-`node server.js`
+The project intentionally does **not** contain a `public/` folder or `data.json`. `index.html` is served directly from the repository root.
 
-No `public/` folder is required. No `data.json` file is included in the ZIP.
-
-## Supabase
-Set these Render environment variables if using Supabase persistence:
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `OWNER_USERNAME` (optional; defaults to `CEOIMANOOB`)
-- `OWNER_PASSWORD` (optional; defaults to the existing owner password)
-
-The app stores its complete state in the `lca_state` table/row used by the existing LCA setup.
+## Validation
+- `node --check server.js` passes.
+- All inline browser JavaScript blocks pass Node syntax validation.
+- No Express wildcard route is used for the static fallback, avoiding the previous `Missing parameter name at index 1: *` crash.
